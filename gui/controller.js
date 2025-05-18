@@ -123,7 +123,8 @@ exports.showDashboard = (req, res) => {
             console.error("[UI] Inventory gRPC error during dashboard load:", err);
             return res.status(500).send("Failed to load available products");
         }
-        console.log(`[UI] Fetched ${inventoryResponse.products.length} available products.`);
+		let inventorySize = inventoryResponse.products ? inventoryResponse.products.length : 0; 
+        console.log(`[UI] Fetched ${inventorySize} available products.`);
 
         const availableProducts = inventoryResponse.products;
 
@@ -139,7 +140,9 @@ exports.showDashboard = (req, res) => {
                 console.error("[UI] Recommendation gRPC error during dashboard load:", err);
                 return res.status(500).send("Failed to load recommended products");
             }
-            console.log(`[UI] Fetched ${recommendedResponse.productIds.length} recommended product IDs.`);
+			
+			let similarSize = recommendedResponse.productIds ? recommendedResponse.productIds.length : 0;
+            console.log(`[UI] Fetched ${similarSize} recommended product IDs.`);
 
             // Map recommended product IDs to full product objects
             const recommendedProducts = (recommendedResponse.productIds || [])
@@ -157,8 +160,11 @@ exports.showDashboard = (req, res) => {
                     }
                     console.error("[UI] User gRPC error during history fetch:", err);
                     return res.status(500).send("Failed to load history products");
+					
                 }
-                console.log(`[UI] Fetched ${historyResponse.products.length} history items.`);
+
+				let historySize = historyResponse.products ? historyResponse.products.length : 0;
+                console.log(`[UI] Fetched ${historySize} history items.`);
 
 
                 // Verify JWT token and render dashboard

@@ -82,7 +82,7 @@ const inventoryService = {
         for (const { id, quantity } of updates) {
             const product = products.find(p => p.id === id); // Find the product by its ID
             if (product) {
-                const newQuantity = product.availableQuantity + quantity; // Calculate the new quantity
+                const newQuantity = product.availableQuantity - quantity; // Calculate the new quantity
                 console.log(`[INVENTORY] Attempting to update product ID ${id}: ${product.availableQuantity} -> ${newQuantity}`);
 
                 // Validate that the new quantity is not negative
