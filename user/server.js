@@ -32,10 +32,14 @@ const recommendationClient = new recommendationProto.RecommendationService("loca
 const lastRecommendationsMap = new Map(); // Map<username, Product[]>
 
 // Maintain a bi-directional stream
-const recommendationStream = recommendationClient.GetSimilarProducts();
+const recommendationBidirectionalStream = recommendationClient.GetSimilarProducts();
+
+const recommendationServerStream = recommendationClient.GetSimilarProducts();
 
 // Handle incoming recommended products from the server
-recommendationStream.on("data", (response) => {
+recommendationBidirectionalStream.on("data", (response) => {
+    console.log(response);
+
     const { username, productIds } = response;
 
 	if (!lastRecommendationsMap.has(username)) {
@@ -43,18 +47,18 @@ recommendationStream.on("data", (response) => {
 	}
 
 	const existing = lastRecommendationsMap.get(username);
-	const updated = existing.concat(productIds).slice(-5); // Keep only last 5
+	const updated = existing.concat(productIds || []).slice(3); // Keep only first 3
 	lastRecommendationsMap.set(username, updated);
 
 	console.log(`Updated recommendations for ${username}:`);
 	console.log(updated);
 });
 
-recommendationStream.on("end", () => {
+recommendationBidirectionalStream.on("end", () => {
 	console.log("Recommendation stream ended.");
 });
 
-recommendationStream.on("error", (err) => {
+recommendationBidirectionalStream.on("error", (err) => {
 	console.error("Recommendation stream error:", err);
 });
 
@@ -65,7 +69,13 @@ const userService = {
 		call.on("data", (request) => {
 			const { username, productIds } = request;
 			console.log(`User ${username} checked out products:`, productIds);
-            recommendationStream.write({ username, productIds });
+            const user = users.find(u => u.username === username);
+
+            user.history.push(...productIds);
+            
+            fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+
+            recommendationBidirectionalStream.write({ username, productIds: user.history });
 		});
 
 		call.on("end", () => {
@@ -111,6 +121,10 @@ const userService = {
                 code: grpc.status.UNAUTHENTICATED,
                 message: "Invalid or expired token",
             });
+        }
+
+        if (fs.existsSync(USERS_FILE)) {
+            users = JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
         }
     
         const user = users.find(u => u.username === username);

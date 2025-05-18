@@ -159,11 +159,25 @@ exports.showCheckout = (req, res) => {
 exports.confirmPurchase = (req, res) => {
 	const token = req.session.token;
 
-	const productIds = 
-
 	try {
 		const decoded = jwt.verify(token, SECRET_KEY);
-		
+		const username = decoded.username;
+		console.log(req.body);
+		const productAndQuantities = JSON.parse(req.body.products).map(p => ({
+			id: parseInt(p.id, 10),
+			quantity: parseInt(p.quantity, 10)
+		}));
+
+		checkoutClient.ConfirmPurchase({ username, productQuantityUpdates: productAndQuantities }, (err, response) => {
+			if (err) {
+				console.error("Checkout gRPC error:", err.message);
+				return res.status(500).send("Checkout failed");
+			}
+			if (!response.success) {
+				return res.status(400).send(response.message);
+			}
+			exports.showDashboard(req, res);
+		});
 	} catch (err) {
 		console.error("Auth error:", err);
 		return res.status(401).send("Invalid or expired token");

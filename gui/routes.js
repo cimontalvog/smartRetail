@@ -44,6 +44,6 @@ router.get('/dashboard', controller.showDashboard);
 
 router.post('/checkout', controller.showCheckout);
 
-router.post('/confirmPurchase', controller.confirmCheckout);
+router.post('/confirmPurchase', controller.confirmPurchase);
 
 module.exports = router;

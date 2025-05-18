@@ -15,34 +15,64 @@ const checkoutProto = grpc.loadPackageDefinition(checkoutPackageDefinition).chec
 const inventoryProto = grpc.loadPackageDefinition(inventoryPackageDefinition).inventory;
 const userProto = grpc.loadPackageDefinition(userPackageDefinition).user;
 
-const inventoryClient = new inventoryProto.UserService("localhost:50053", grpc.credentials.createInsecure());
+const inventoryClient = new inventoryProto.InventoryService("localhost:50053", grpc.credentials.createInsecure());
 const userClient = new userProto.UserService("localhost:50055", grpc.credentials.createInsecure());
 
-// Recommendations stream (kept open indefinitely)
-const recommendationsStream = userClient.UpdateRecommendations();
+// Open stream once
+const recommendationsStream = userClient.UpdateRecommendations((err, response) => {
+	if (err) {
+		console.error("Recommendation stream error:", err);
+	} else {
+		console.log("Recommendation stream response:", response);
+	}
+});
 
 recommendationsStream.on('error', (err) => {
 	console.error('Recommendation stream error:', err.message);
 });
 
 const checkoutService = {
-    ConfirmCart: (call, callback) => {
+    ConfirmPurchase: (call, callback) => {
+        console.log(call);
 		const { username, productQuantityUpdates } = call.request;
 
-        //TODO
-        //Call inventoryClient.UpdateQuantities with same params as 
+        console.log(productQuantityUpdates)
 
-		// Send recommendations via open stream
-		recommendationsStream.write({ username, productIds });
+		// Call inventory service to update quantities
+		inventoryClient.UpdateQuantities({ updates: productQuantityUpdates }, (err, res) => {
+			if (err) {
+				console.error("Inventory error:", err.details);
+				return callback(null, {
+					success: false,
+					message: `Inventory update failed: ${err.details}`
+				});
+			}
 
-		// Reply to client
-		callback(null, { success: true, message: 'Checkout confirmed and recommendations sent' });
+			// Generate productIds array for recommendations stream
+			const productIds = [];
+			for (const update of productQuantityUpdates) {
+				if (update.quantity > 0) {
+					for (let i = 0; i < update.quantity; i++) {
+						productIds.push(update.id);
+					}
+				}
+			}
+
+			// Write to recommendations stream
+			recommendationsStream.write({ username, productIds });
+
+			// Respond to checkout client
+			callback(null, {
+				success: true,
+				message: 'Checkout confirmed, inventory updated, and recommendations sent.'
+			});
+		});
 	}
 };
 
 // Start gRPC Server
 const server = new grpc.Server();
-server.addService(checkoutService.CheckoutService.service, checkoutService);
+server.addService(checkoutProto.CheckoutService.service, checkoutService);
 server.bindAsync("0.0.0.0:50052", grpc.ServerCredentials.createInsecure(), () => {
     console.log("gRPC Checkout Server running on port 50052...");
 });

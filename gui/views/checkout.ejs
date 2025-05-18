@@ -31,8 +31,8 @@
 					Total: $<%= cart.reduce((total, item) => total + item.price * (item.quantity || 1), 0).toFixed(2) %>
 				</div>
 
-				<form action="/confirm-purchase" method="POST">
-					<input type="hidden" name="cart" value='<%- JSON.stringify(cart) %>'>
+				<form action="/confirmPurchase" method="POST" onsubmit="return preparePayload();">
+					<input type="hidden" name="products" id="productsInput">
 					<button type="submit">Confirm Purchase</button>
 				</form>
 			<% } %>
@@ -41,5 +41,13 @@
 		<!-- Empty spacer -->
 		<div></div>
 	</div>
+	<script>
+		function preparePayload() {
+			let cart = JSON.parse('<%- JSON.stringify(cart) %>');
+			const simplified = cart.map(p => ({ id: p.id, quantity: p.quantity || 1 }));
+			document.getElementById('productsInput').value = JSON.stringify(simplified);
+			return true; // Allow form to submit
+		}
+	</script>
 </body>
 </html>
