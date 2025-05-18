@@ -6,6 +6,38 @@ const fs = require('fs');
 const INVENTORY_PROTO_PATH = "proto/inventory.proto";
 const PRODUCTS_FILE = "data/inventory.json";
 
+const checkoutPackageDefinition = protoLoader.loadSync("proto/checkout.proto")
+
+const checkoutProto = grpc.loadPackageDefinition(checkoutPackageDefinition).checkout;
+const checkoutClient = new checkoutProto.CheckoutService("localhost:50052", grpc.credentials.createInsecure());
+
+// Maintain a server stream
+const checkoutStatsStream = checkoutClient.StreamCheckoutStats();
+
+// Call the server-streaming RPC
+const stream = checkoutClient.StreamCheckoutStats({}, (err, response) => {
+	if (err) {
+		console.error("Initial error:", err);
+	}
+});
+
+// Handle incoming stream data
+stream.on("data", (checkoutStats) => {
+	console.log("Received stats:");
+	console.log(`    Total Products Purchased: ${checkoutStats.totalProductsPurchased}`);
+	console.log(`    Total Money Spent: ${checkoutStats.totalMoneySpent}`);
+});
+
+// Handle stream end
+stream.on("end", () => {
+	console.log("✅ Stream ended by server.");
+});
+
+// Handle stream errors
+stream.on("error", (err) => {
+	console.error("❌ Stream error:", err);
+});
+
 // Read products from the file
 let products = [];
 if (fs.existsSync(PRODUCTS_FILE)) {

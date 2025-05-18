@@ -1,19 +1,8 @@
 const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
-const fs = require('fs');
 
-// Load .proto file
+// Load .proto files
 const RECOMMENDATION_PROTO_PATH = "proto/recommendation.proto";
-const PRODUCTS_FILE = "data/inventory.json";
-
-// Add a recommendations.json that saves recommendations info
-// Use inventory.getAllProducts instead of loading inventory.json
-
-// Read products from the file
-let products = [];
-if (fs.existsSync(PRODUCTS_FILE)) {
-    products = JSON.parse(fs.readFileSync(PRODUCTS_FILE, "utf8"));
-}
 
 const packageDefinition = protoLoader.loadSync(RECOMMENDATION_PROTO_PATH);
 
@@ -30,14 +19,23 @@ const recommendationService = {
 			const { username, productIds } = request;
 
 			console.log(request);
-	
-			const result = getSimilarProducts(productIds, products);
 
-			console.log(result);
+			inventoryClient.GetAllProducts({}, (err, inventoryResponse) => {
+				if (err) {
+					console.error("Inventory gRPC error:", err);
+					return res.status(500).send("Failed to load available products");
+				}
+			
+				const products = inventoryResponse.products;
 	
-			call.write({
-				username,
-				productIds: result, // This is a list of Product messages
+				const result = getSimilarProducts(productIds, products);
+
+				console.log(result);
+		
+				call.write({
+					username,
+					productIds: result, // This is a list of Product messages
+				});
 			});
 		});
 	

@@ -3,7 +3,13 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "auth": "node auth/server.js",
+    "frontend": "node gui/app.js",
+    "recommendation": "node recommendation/server.js",
+    "user-after-recommendation": "wait-on tcp:50054 && node user/server.js",
+    "checkout-after-user": "wait-on tcp:50055 && node checkout/server.js",
+    "inventory-after-checkout": "wait-on tcp:50052 && node inventory/server.js",
+    "start-all-parallel": "npm-run-all --parallel auth frontend recommendation user-after-recommendation checkout-after-user inventory-after-checkout"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +22,8 @@
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-session": "^1.18.1",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "npm-run-all": "^4.1.5",
+    "wait-on": "^8.0.3"
   }
 }

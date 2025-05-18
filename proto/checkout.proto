@@ -5,6 +5,7 @@ package checkout;
 service CheckoutService {
   // Confirms and processes the current user's cart (unary)
   rpc ConfirmPurchase (ConfirmPurchaseRequest) returns (ConfirmPurchaseResponse);
+  rpc StreamCheckoutStats (Empty) returns (stream CheckoutStats);
 }
 
 message ConfirmPurchaseRequest {
@@ -21,6 +22,11 @@ message ProductQuantityUpdate {
 message ConfirmPurchaseResponse {
   bool success = 1;
   string message = 2;
+}
+
+message CheckoutStats {
+	int32 totalProductsPurchased = 1;  // 0 or more, integer
+	float totalMoneySpent = 2;         // 0.0 or more, float
 }
 
 message Empty {}

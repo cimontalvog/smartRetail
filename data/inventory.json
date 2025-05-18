@@ -5,7 +5,7 @@
     "description": "Compact wireless earbuds with noise-cancellation and long battery life.",
     "subcategory": "Electronics",
     "price": 59.99,
-    "availableQuantity": 22
+    "availableQuantity": 25
   },
   {
     "id": 2,
@@ -13,7 +13,7 @@
     "description": "Soft cotton t-shirt with a relaxed fit for everyday comfort.",
     "subcategory": "Clothing",
     "price": 14.99,
-    "availableQuantity": 11
+    "availableQuantity": 14
   },
   {
     "id": 3,
@@ -21,7 +21,7 @@
     "description": "Automatic espresso machine with milk frother for home baristas.",
     "subcategory": "Appliances",
     "price": 189.99,
-    "availableQuantity": 4
+    "availableQuantity": 5
   },
   {
     "id": 4,
@@ -29,7 +29,7 @@
     "description": "Ergonomic mouse with customizable DPI and RGB lighting.",
     "subcategory": "Electronics",
     "price": 29.95,
-    "availableQuantity": 9
+    "availableQuantity": 10
   },
   {
     "id": 5,
@@ -37,7 +37,7 @@
     "description": "Lightweight running shoes with breathable mesh and arch support.",
     "subcategory": "Footwear",
     "price": 74.99,
-    "availableQuantity": 17
+    "availableQuantity": 18
   },
   {
     "id": 6,
@@ -53,7 +53,7 @@
     "description": "Non-slip, eco-friendly yoga mat with extra cushioning.",
     "subcategory": "Fitness",
     "price": 24.99,
-    "availableQuantity": 19
+    "availableQuantity": 21
   },
   {
     "id": 8,

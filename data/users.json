@@ -2,7 +2,23 @@
   {
     "username": "admin",
     "password": "$2a$12$ZNwjJepeYlJB4Mauj/6FFup1.Mh3id5AcUt0TtdSr1sSjWAGFiQZ6",
-    "history": [1, 2, 3, 3]
+    "history": [
+      1,
+      2,
+      3,
+      3,
+      1,
+      2,
+      4,
+      5,
+      7,
+      7,
+      1,
+      2,
+      3,
+      2,
+      1
+    ]
   },
   {
     "username": "admin43",

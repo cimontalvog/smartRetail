@@ -34,8 +34,6 @@ const lastRecommendationsMap = new Map(); // Map<username, Product[]>
 // Maintain a bi-directional stream
 const recommendationBidirectionalStream = recommendationClient.GetSimilarProducts();
 
-const recommendationServerStream = recommendationClient.GetSimilarProducts();
-
 // Handle incoming recommended products from the server
 recommendationBidirectionalStream.on("data", (response) => {
     console.log(response);

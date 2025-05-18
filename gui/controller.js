@@ -1,4 +1,3 @@
-const path = require('path');
 const bcrypt = require("bcrypt");
 const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
@@ -28,6 +27,7 @@ const SECRET_KEY = "tokensupersecret"; // Secret used for the JWT token
 
 // Show login page
 exports.showLogin = (req, res) => {
+	console.log("HEY!");
 	res.render('login');
 };
 
@@ -92,7 +92,6 @@ exports.handleRegister = (req, res) => {
 	});
 };
 
-// Show dashboard page
 exports.showDashboard = (req, res) => {
 	const token = req.session.token;
 
@@ -101,47 +100,54 @@ exports.showDashboard = (req, res) => {
 			console.error("Inventory gRPC error:", err);
 			return res.status(500).send("Failed to load available products");
 		}
-	
+
 		const availableProducts = inventoryResponse.products;
 
 		userClient.GetSimilarProducts({ token }, (err, recommendedResponse) => {
 			if (err) {
-				console.error("Inventory gRPC error:", err);
+				if (err.code === grpc.status.UNAUTHENTICATED) {
+					req.session.error = "Session expired. Please log in again.";
+					return res.redirect('/login');
+				}
+				console.error("Recommendation gRPC error:", err);
 				return res.status(500).send("Failed to load recommended products");
 			}
 
 			const recommendedProducts = (recommendedResponse.productIds || [])
 				.map(id => availableProducts.find(p => p.id === id))
 				.filter(p => p); // Filters out undefined if any ID wasn't found
-		
+
 			userClient.GetUserHistoryProducts({ token }, (err, historyResponse) => {
 				if (err) {
+					if (err.code === grpc.status.UNAUTHENTICATED) {
+						req.session.error = "Session expired. Please log in again.";
+						return res.redirect('/login');
+					}
 					console.error("User gRPC error:", err);
 					return res.status(500).send("Failed to load history products");
 				}
-		
-				const historyProducts = historyResponse.products;
+
 				try {
 					const decoded = jwt.verify(token, SECRET_KEY);
 					res.render('dashboard', {
 						username: decoded.username,
-						history: historyProducts,
-						available: availableProducts, // <- from GetAllProducts
+						history: historyResponse.products,
+						available: availableProducts,
 						recommended: recommendedProducts,
 						cart: []
 					});
 				} catch (err) {
 					console.error("Auth error:", err);
-					return res.status(401).send("Invalid or expired token");
+					req.session.error = "Session invalid or expired.";
+					return res.redirect('/login');
 				}
 			});
 		});
-	});	
+	});
 };
 
 exports.showCheckout = (req, res) => {
 	const token = req.session.token;
-
 	const cart = JSON.parse(req.body.cart || '[]');
 
 	try {
@@ -151,10 +157,12 @@ exports.showCheckout = (req, res) => {
 			cart
 		});
 	} catch (err) {
-		console.error("Auth error:", err);
-		return res.status(401).send("Invalid or expired token");
+		console.error("Auth error:", err.message);
+		req.session.message = "Please log in again. Your session has expired.";
+		return res.redirect('/login');
 	}
 };
+
 
 exports.confirmPurchase = (req, res) => {
 	const token = req.session.token;
@@ -162,7 +170,7 @@ exports.confirmPurchase = (req, res) => {
 	try {
 		const decoded = jwt.verify(token, SECRET_KEY);
 		const username = decoded.username;
-		console.log(req.body);
+
 		const productAndQuantities = JSON.parse(req.body.products).map(p => ({
 			id: parseInt(p.id, 10),
 			quantity: parseInt(p.quantity, 10)
@@ -179,7 +187,8 @@ exports.confirmPurchase = (req, res) => {
 			exports.showDashboard(req, res);
 		});
 	} catch (err) {
-		console.error("Auth error:", err);
-		return res.status(401).send("Invalid or expired token");
+		console.error("Auth error:", err.message);
+		req.session.message = "Please log in again. Your session has expired.";
+		return res.redirect('/login');
 	}
 };

@@ -4,7 +4,6 @@ package recommendation;
 
 service RecommendationService {
   rpc GetSimilarProducts (stream ProductsRequest) returns (stream RecommendedProducts);
-  rpc StreamRecommendationStats (UserStatsRequest) returns (stream RecommendationStats);
 }
 
 message ProductsRequest {
@@ -15,14 +14,4 @@ message ProductsRequest {
 message RecommendedProducts {
   string username = 1;
   repeated int32 productIds = 2;
-}
-
-message UserStatsRequest {
-  string username = 1;
-}
-
-message RecommendationStats {
-  string username = 1;
-  int32 totalRecommendations = 2;
-  string lastUpdated = 3;
 }
