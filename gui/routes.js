@@ -11,7 +11,6 @@ router.get('/login', (req, res) => {
 	delete req.session.message;
 	const error = req.session.error;
 	delete req.session.error;
-    console.log("UNDERFIED: " + message)
 	res.render('login', { message, error });
 });
 
@@ -25,7 +24,7 @@ router.post('/logout', (req, res) => {
 			console.error("Failed to destroy session during logout", err);
 			return res.redirect('/dashboard');
 		}
-		res.clearCookie('connect.sid'); // clears the session cookie
+		res.clearCookie('connect.sid'); // This clears the session cookie
 		res.redirect('/login');
 	});
 });

@@ -4,25 +4,10 @@
 	<meta charset="UTF-8">
 	<title><%= username %> - Dashboard</title>
 	<link rel="stylesheet" href="/main.css">
-	<style>
-		.toggle-buttons {
-			margin-bottom: 1rem;
-		}
-		.toggle-buttons button {
-			margin-right: 0.5rem;
-			padding: 0.5rem 1rem;
-			cursor: pointer;
-		}
-		.toggle-buttons .active-btn {
-			background-color: #007bff;
-			color: white;
-			border: none;
-		}
-	</style>
 </head>
 <body>
 	<h1><%= username %> - Dashboard</h1>
-	<form action="/logout" method="POST" style="display:inline;">
+	<form action="/logout" method="POST" class="logout-form">
 		<button type="submit">Logout</button>
 	</form>
 
@@ -44,7 +29,11 @@
 			</div>
 			<div id="available-products">
 				<% available.forEach(item => { %>
-					<div class="product"><%= item.name %> - $<%= item.price.toFixed(2) %></div>
+					<div class="product">
+						<%= item.name %> - $<%= item.price.toFixed(2) %>
+						<button onclick="modifyCart('<%= item.name %>', 1)">+</button>
+						<button onclick="modifyCart('<%= item.name %>', -1)">–</button>
+					</div>
 				<% }); %>
 			</div>
 			<div id="recommended-products" style="display: none;">
@@ -57,16 +46,21 @@
 		<!-- Cart Panel -->
 		<div class="panel">
 			<h2>Cart</h2>
-			<% cart.forEach(item => { %>
-				<div class="checkout-item"><%= item.name %> - $<%= item.price.toFixed(2) %></div>
-			<% }); %>
-			<div class="checkout-total">
+			<div id="cart-container">
+				<% cart.forEach(item => { %>
+					<div class="checkout-item"><%= item.name %> - $<%= item.price.toFixed(2) %></div>
+				<% }); %>
+			</div>
+			<div id="cart-total" class="checkout-total">
 				Total: $<%= cart.reduce((total, item) => total + item.price, 0).toFixed(2) %>
 			</div>
 		</div>
 	</div>
 
 	<script>
+		const availableProducts = JSON.parse('<%- JSON.stringify(available) %>');
+		let cart = JSON.parse('<%- JSON.stringify(cart) %>');
+
 		function toggleView(view) {
 			const availableBtn = document.getElementById('available-btn');
 			const recommendedBtn = document.getElementById('recommended-btn');
@@ -76,6 +70,56 @@
 
 			availableBtn.classList.toggle('active-btn', view === 'available');
 			recommendedBtn.classList.toggle('active-btn', view === 'recommended');
+		}
+
+		function modifyCart(productName, delta) {
+			const product = availableProducts.find(p => p.name === productName);
+			if (!product) return;
+
+			const existing = cart.find(item => item.name === productName);
+			const existingQty = existing?.quantity || 0;
+
+			if (delta > 0) {
+				if (existingQty < (product.availableQuantity ?? Infinity)) {
+					if (existing) {
+						existing.quantity += 1;
+					} else {
+						cart.push({ name: product.name, price: product.price, quantity: 1 });
+					}
+				} else {
+					alert("No more stock available for " + product.name);
+				}
+			} else if (delta < 0) {
+				if (existing) {
+					existing.quantity -= 1;
+					if (existing.quantity <= 0) {
+						cart = cart.filter(item => item.name !== productName);
+					}
+				}
+			}
+
+			renderCart();
+		}
+
+		function renderCart() {
+			const container = document.getElementById('cart-container');
+			const totalElem = document.getElementById('cart-total');
+
+			container.innerHTML = '';
+			let total = 0;
+
+			cart.forEach(item => {
+				const quantity = item.quantity || 1;
+				const price = item.price * quantity;
+				total += price;
+
+				const div = document.createElement('div');
+				div.className = 'checkout-item';
+				div.textContent = `${item.name} x${quantity} - $${price.toFixed(2)}`;
+				container.appendChild(div);
+			});
+
+			totalElem.textContent = `Total: $${total.toFixed(2)}`;
 		}
 	</script>
 </body>

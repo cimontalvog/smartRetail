@@ -6,9 +6,13 @@ const jwt = require('jsonwebtoken');
 const authPackageDefinition = protoLoader.loadSync("proto/auth.proto");
 const recommendationPackageDefinition = protoLoader.loadSync("proto/recommendation.proto");
 const userPackageDefinition = protoLoader.loadSync("proto/user.proto");
+const inventoryPackageDefinition = protoLoader.loadSync("proto/inventory.proto");
 
 const authProto = grpc.loadPackageDefinition(authPackageDefinition).auth;
 const authClient = new authProto.AuthService("localhost:50051", grpc.credentials.createInsecure());
+
+const inventoryProto = grpc.loadPackageDefinition(inventoryPackageDefinition).inventory;
+const inventoryClient = new inventoryProto.InventoryService("localhost:50053", grpc.credentials.createInsecure());
 
 const recommendationProto = grpc.loadPackageDefinition(recommendationPackageDefinition).recommendation;
 const recommendationClient = new recommendationProto.RecommendationService("localhost:50054", grpc.credentials.createInsecure());
@@ -88,37 +92,45 @@ exports.handleRegister = (req, res) => {
 exports.showDashboard = (req, res) => {
 	const token = req.session.token;
 
-	userClient.GetUserHistoryProducts({ token }, (err, response) => {
-		if (err) {
-			console.error("gRPC error:", err);
-			return res.status(401).send("Unauthorized or failed to load dashboard");
-		}
+	
 
-		const historyProducts = response.products;
-		try {
-			const decoded = jwt.verify(token, SECRET_KEY);
-			res.render('dashboard', {
-				username: decoded.username,
-				history: historyProducts,
-				available: [
-					{ name: "Apple", price: 1.20 },
-					{ name: "Banana", price: 0.80 }
-				],
-				recommended: [
-					{ name: "Grapes", price: 2.50 },
-					{ name: "Mango", price: 3.00 }
-				],
-				cart: [
-					{ name: "Apple", price: 1.20 },
-					{ name: "Banana", price: 0.80 }
-				]
-			});
-		} catch (err) {
-			console.error("Auth error:", err);
-			return callback({
-				code: grpc.status.UNAUTHENTICATED,
-				message: "Invalid or expired token",
-			});
+	inventoryClient.GetAllProducts({}, (err, inventoryResponse) => {
+		if (err) {
+			console.error("Inventory gRPC error:", err);
+			return res.status(500).send("Failed to load available products");
 		}
-	});
+	
+		const availableProducts = inventoryResponse.products;
+
+		userClient.GetSimilarProducts({ token }, (err, recommendedResponse) => {
+			if (err) {
+				console.error("Inventory gRPC error:", err);
+				return res.status(500).send("Failed to load recommended products");
+			}
+
+			const recommendedProducts = recommendedResponse.products;
+		
+			userClient.GetUserHistoryProducts({ token }, (err, historyResponse) => {
+				if (err) {
+					console.error("User gRPC error:", err);
+					return res.status(401).send("Unauthorized or failed to load dashboard");
+				}
+		
+				const historyProducts = historyResponse.products;
+				try {
+					const decoded = jwt.verify(token, SECRET_KEY);
+					res.render('dashboard', {
+						username: decoded.username,
+						history: historyProducts,
+						available: availableProducts, // <- from GetAllProducts
+						recommended: recommendedProducts,
+						cart: []
+					});
+				} catch (err) {
+					console.error("Auth error:", err);
+					return res.status(401).send("Invalid or expired token");
+				}
+			});
+		});
+	});	
 };

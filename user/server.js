@@ -89,7 +89,7 @@ const userService = {
 			});
 		}
 
-		const products = userRecommendations.get(username) || [];
+		const products = lastRecommendationsMap.get(username) || [];
 
 		// Return the full list of products (repeated field)
 		callback(null, {
