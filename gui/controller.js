@@ -126,7 +126,7 @@ exports.showDashboard = (req, res) => {
 		let inventorySize = inventoryResponse.products ? inventoryResponse.products.length : 0; 
         console.log(`[UI] Fetched ${inventorySize} available products.`);
 
-        const availableProducts = inventoryResponse.products;
+        const availableProducts = inventoryResponse.products || [];
 
         // Get recommended products from User service
         userClient.GetSimilarProducts({ token }, (err, recommendedResponse) => {
@@ -163,6 +163,7 @@ exports.showDashboard = (req, res) => {
 					
                 }
 
+				let historyProducts = historyResponse.products || [];
 				let historySize = historyResponse.products ? historyResponse.products.length : 0;
                 console.log(`[UI] Fetched ${historySize} history items.`);
 
@@ -173,7 +174,7 @@ exports.showDashboard = (req, res) => {
                     console.log(`[UI] Rendering dashboard for user: ${decoded.username}`);
                     res.render('dashboard', {
                         username: decoded.username,
-                        history: historyResponse.products,
+                        history: historyProducts,
                         available: availableProducts,
                         recommended: recommendedProducts,
                         cart: []
