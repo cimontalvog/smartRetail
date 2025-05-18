@@ -35,7 +35,7 @@ const authService = {
 
         // If user not found, return unsuccessful login
         if (!user) {
-            console.log("User " + user + " doesn't exist")
+            console.log("[AUTH] User " + user + " doesn't exist")
             return callback(null, { success: false, token: '' });
         }
 
@@ -48,6 +48,7 @@ const authService = {
 
             // If passwords match, sign a JWT token and return successful login
             const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: "1h" });
+			console.log("[AUTH] User " + user + " logged in")
             callback(null, { success: true, token });
         });
     },
@@ -70,7 +71,7 @@ const authService = {
 
         let message = "User " + username + " has registered successfully"
 
-        console.log(message);
+        console.log("[AUTH] " + message);
 
         // Return successful registration response
         callback(null, {
@@ -93,10 +94,10 @@ server.bindAsync("0.0.0.0:50051", grpc.ServerCredentials.createInsecure(), (err,
     {
         // Handle binding errors
         if (err) {
-        console.error("Failed to bind gRPC server:", err);
+        console.error("[AUTH] Failed to bind gRPC server:", err);
         return;
         }
         // Log successful server startup
-        console.log(`gRPC Auth Server running on port ${port}...`);
+        console.log(`[AUTH] gRPC Auth Server running on port ${port}...`);
     }
 );

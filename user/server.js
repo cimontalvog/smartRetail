@@ -13,16 +13,21 @@ const USERS_FILE = "data/users.json";
 
 // --- Data Loading ---
 
+console.log("[USER] Loading user data from file...");
 // Load existing users from file; initialize if not found
 let users = [];
 if (fs.existsSync(USERS_FILE)) {
     users = JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
+    console.log(`[USER] Loaded ${users.length} users from ${USERS_FILE}.`);
+} else {
+    console.log(`[USER] ${USERS_FILE} not found. Starting with empty user data.`);
 }
 
 const SECRET_KEY = "tokensupersecret"; // Secret key for JWTs
 
 // --- Load Protocol Buffer Definitions and Initialize gRPC Clients ---
 
+console.log("[USER] Loading proto definitions and creating gRPC clients...");
 // Load Protobuf definitions for User, Inventory, and Recommendation services
 const userPackageDefinition = protoLoader.loadSync(USER_PROTO_PATH);
 const inventoryPackageDefinition = protoLoader.loadSync(INVENTORY_PROTO_PATH);
@@ -42,12 +47,13 @@ const recommendationClient = new recommendationProto.RecommendationService("loca
 // Map to store the last received recommendations for each user
 const lastRecommendationsMap = new Map(); // Map<username, Product[]>
 
+console.log("[USER] Opening bidirectional stream to Recommendation service...");
 // Open a bidirectional stream to the Recommendation service
 const recommendationBidirectionalStream = recommendationClient.GetSimilarProducts();
 
 // Handle incoming recommended products from the Recommendation service
 recommendationBidirectionalStream.on("data", (response) => {
-    console.log(response);
+    console.log(`[USER] Received recommendation update from Recommendation service:`, response);
 
     const { username, productIds } = response;
 
@@ -56,21 +62,20 @@ recommendationBidirectionalStream.on("data", (response) => {
         lastRecommendationsMap.set(username, []);
     }
     const existing = lastRecommendationsMap.get(username);
-    const updated = existing.concat(productIds || []).slice(3); // Concatenate and keep last 3
+    const updated = existing.concat(productIds || []).slice(3); // Concatenate new IDs and keep last 3
     lastRecommendationsMap.set(username, updated);
 
-    console.log(`Updated recommendations for ${username}:`);
-    console.log(updated);
+    console.log(`[USER] Stored updated recommendations for ${username}:`, updated);
 });
 
 // Log when the recommendation stream ends
 recommendationBidirectionalStream.on("end", () => {
-    console.log("Recommendation stream ended.");
+    console.log("[USER] Recommendation stream ended.");
 });
 
 // Log any errors on the recommendation stream
 recommendationBidirectionalStream.on("error", (err) => {
-    console.error("Recommendation stream error:", err);
+    console.error("[USER] Recommendation stream error:", err);
 });
 
 // --- UserService Implementation ---
@@ -79,28 +84,33 @@ recommendationBidirectionalStream.on("error", (err) => {
 const userService = {
     // Updates user recommendations after a checkout (client-streaming RPC)
     UpdateRecommendations: (call, callback) => {
+        console.log("[USER] New client connected for UpdateRecommendations stream.");
         // Process each incoming data chunk (product IDs checked out by a user)
         call.on("data", (request) => {
             const { username, productIds } = request;
-            console.log(`User ${username} checked out products:`, productIds);
+            console.log(`[USER] Received checkout data for ${username}:`, productIds);
             const user = users.find(u => u.username === username);
 
             // Add new product IDs to user's history and persist
             user.history.push(...productIds);
             fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+            console.log(`[USER] Updated history for ${username}. History size: ${user.history.length}`);
 
             // Send updated user history to the Recommendation service
             recommendationBidirectionalStream.write({ username, productIds: user.history });
+            console.log(`[USER] Sent user history to Recommendation service for ${username}.`);
         });
 
         // Respond when the client stream finishes sending data
         call.on("end", () => {
+            console.log("[USER] UpdateRecommendations stream ended by client.");
             callback(null, {}); // Send empty response
         });
     },
 
     // Retrieves similar products for a user (unary RPC)
     GetSimilarProducts: (call, callback) => {
+        console.log("[USER] Received GetSimilarProducts request.");
         const { token } = call.request; // Extract token from request
 
         let username;
@@ -108,8 +118,9 @@ const userService = {
         try {
             const decoded = jwt.verify(token, SECRET_KEY);
             username = decoded.username;
+            console.log(`[USER] Authenticated user for GetSimilarProducts: ${username}`);
         } catch (err) {
-            console.error("Invalid token:", err.message);
+            console.error("[USER] Invalid token for GetSimilarProducts:", err.message);
             // Return UNAUTHENTICATED error for invalid token
             return callback({
                 code: grpc.status.UNAUTHENTICATED,
@@ -117,10 +128,9 @@ const userService = {
             });
         }
 
-        console.log("Getting recommended products for " + username);
-
         // Get last received recommendations from the map
         const productIds = lastRecommendationsMap.get(username) || [];
+        console.log(`[USER] Retrieved ${productIds.length} recommended products for ${username}.`);
 
         // Return recommended product IDs
         callback(null, {
@@ -130,6 +140,7 @@ const userService = {
 
     // Retrieves user's purchase history (unary RPC)
     GetUserHistoryProducts: (call, callback) => {
+        console.log("[USER] Received GetUserHistoryProducts request.");
         const { token } = call.request; // Extract token from request
 
         let username;
@@ -137,8 +148,9 @@ const userService = {
         try {
             const decoded = jwt.verify(token, SECRET_KEY);
             username = decoded.username;
+            console.log(`[USER] Authenticated user for GetUserHistoryProducts: ${username}`);
         } catch (err) {
-            console.error("Auth error:", err);
+            console.error("[USER] Auth error getting user history:", err);
             // Return UNAUTHENTICATED error for invalid token
             return callback({
                 code: grpc.status.UNAUTHENTICATED,
@@ -146,14 +158,16 @@ const userService = {
             });
         }
 
-        // Re-read users file to ensure up-to-date data (less efficient for frequent calls)
+        // Re-read users file to ensure up-to-date data (less efficient for frequent calls, consider caching)
         if (fs.existsSync(USERS_FILE)) {
             users = JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
+            console.log("[USER] Re-loaded user data for history fetch.");
         }
 
         // Find the user by username
         const user = users.find(u => u.username === username);
         if (!user) {
+            console.warn(`[USER] User '${username}' not found for history fetch.`);
             // Return NOT_FOUND error if user not found
             return callback({
                 code: grpc.status.NOT_FOUND,
@@ -161,18 +175,19 @@ const userService = {
             });
         }
 
-        console.log("Getting product history for: " + user.username);
+        console.log(`[USER] Fetching product history details for ${user.username}.`);
 
-        // Fetch all products from Inventory service to enrich history
+        // Fetch all products from Inventory service to enrich history details
         inventoryClient.GetAllProducts({}, (err, response) => {
             if (err) {
-                console.error("Inventory service error:", err);
+                console.error("[USER] Inventory service error fetching all products for history:", err);
                 // Return UNAVAILABLE error if Inventory service fails
                 return callback({
                     code: grpc.status.UNAVAILABLE,
                     message: "Failed to fetch products from inventory service"
                 });
             }
+            console.log(`[USER] Fetched ${response.products.length} products from Inventory for history enrichment.`);
 
             const allProducts = response.products;
 
@@ -181,11 +196,15 @@ const userService = {
             for (const productId of user.history) {
                 countMap.set(productId, (countMap.get(productId) || 0) + 1);
             }
+            console.log(`[USER] Counted ${countMap.size} unique items in user history.`);
 
             // Map history IDs to full product objects with quantities
             const products = Array.from(countMap.entries()).map(([id, quantity]) => {
                 const product = allProducts.find(p => p.id === id);
-                if (!product) return null; // Skip if product details not found
+                if (!product) {
+                    console.warn(`[USER] Product ID ${id} from history not found in current inventory.`);
+                    return null; // Skip if product details not found
+                }
 
                 return {
                     id: product.id,
@@ -199,6 +218,7 @@ const userService = {
 
             // Return the user's purchased products history
             callback(null, { products });
+            console.log(`[USER] Returned ${products.length} enriched history items for ${user.username}.`);
         });
     }
 };
@@ -213,5 +233,5 @@ server.addService(userProto.UserService.service, userService);
 
 // Bind the server to an address and port, and start it
 server.bindAsync("0.0.0.0:50055", grpc.ServerCredentials.createInsecure(), () => {
-    console.log("gRPC Recommendation Server running on port 50055...");
+    console.log("[USER] gRPC User Server running on port 50055...");
 });
