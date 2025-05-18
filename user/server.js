@@ -82,6 +82,13 @@ const userService = {
         call.on("data", (request) => {
             const { username, productIds } = request;
             console.log(`[USER] Received checkout data for ${username}:`, productIds);
+            
+            // Re-read users file to ensure up-to-date data (less efficient for frequent calls, consider caching)
+            if (fs.existsSync(USERS_FILE)) {
+                users = JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
+                console.log("[USER] Re-loaded user data for history fetch.");
+            }
+
             const user = users.find(u => u.username === username);
 
             // Add new product IDs to user's history and persist
@@ -119,6 +126,12 @@ const userService = {
                 code: grpc.status.UNAUTHENTICATED,
                 message: "Invalid token",
             });
+        }
+
+        // Re-read users file to ensure up-to-date data (less efficient for frequent calls, consider caching)
+        if (fs.existsSync(USERS_FILE)) {
+            users = JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
+            console.log("[USER] Re-loaded user data for history fetch.");
         }
 
         const user = users.find(u => u.username === username);

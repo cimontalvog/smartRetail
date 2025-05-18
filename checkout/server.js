@@ -172,7 +172,7 @@ const checkoutService = {
             const stats = loadStats(); // Load the latest stats
             call.write(stats); // Send stats to the connected client
             console.log("[CHECKOUT] Streaming current stats to client.");
-        }, 2000);
+        }, 5000);
 
         // Clear the interval when the client cancels the stream
         call.on('cancelled', () => {
