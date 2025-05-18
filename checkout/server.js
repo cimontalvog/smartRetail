@@ -2,23 +2,21 @@ const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
 
 // Load .proto file
-const PROTO_PATH = "./hello.proto";
-const packageDefinition = protoLoader.loadSync(PROTO_PATH);
+const CHECKOUT_PROTO_PATH = "proto/checkout.proto";
 
-const helloProto = grpc.loadPackageDefinition(packageDefinition).hello;
+// Load .proto file
+const packageDefinition = protoLoader.loadSync(CHECKOUT_PROTO_PATH);
+
+const checkoutProto = grpc.loadPackageDefinition(packageDefinition).checkout;
 
 // Implement the HelloService
-const helloService = {
-    SayHello: (call, callback) => {
-        const name = call.request.name || "World";
-        console.log("Response generated!");
-        callback(null, { message: `Hello, ${name}!` });
-    }
+const checkoutService = {
+    
 };
 
 // Start gRPC Server
 const server = new grpc.Server();
-server.addService(helloProto.HelloService.service, helloService);
+server.addService(checkoutService.CheckoutService.service, checkoutService);
 server.bindAsync("0.0.0.0:50052", grpc.ServerCredentials.createInsecure(), () => {
-    console.log("gRPC Hello Server running on port 50052...");
+    console.log("gRPC Checkout Server running on port 50052...");
 });

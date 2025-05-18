@@ -2,49 +2,80 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Dashboard</title>
+	<title><%= username %> - Dashboard</title>
 	<link rel="stylesheet" href="/main.css">
+	<style>
+		.toggle-buttons {
+			margin-bottom: 1rem;
+		}
+		.toggle-buttons button {
+			margin-right: 0.5rem;
+			padding: 0.5rem 1rem;
+			cursor: pointer;
+		}
+		.toggle-buttons .active-btn {
+			background-color: #007bff;
+			color: white;
+			border: none;
+		}
+	</style>
 </head>
 <body>
-	<h1>Dashboard</h1>
+	<h1><%= username %> - Dashboard</h1>
+	<form action="/logout" method="POST" style="display:inline;">
+		<button type="submit">Logout</button>
+	</form>
+
 	<div class="dashboard">
 		<!-- Purchase History Panel -->
 		<div class="panel">
 			<h2>Purchase History</h2>
-			<div class="history-item">Order #123 - $29.99</div>
-			<div class="history-item">Order #124 - $14.50</div>
-			<div class="history-item">Order #125 - $48.00</div>
+			<% history.forEach(item => { %>
+				<div class="history-item"><%= item.name %> x<%= item.quantity %> - $<%= (item.price * item.quantity).toFixed(2) %></div>
+			<% }); %>
 		</div>
 
 		<!-- Center Products Panel -->
 		<div class="panel">
 			<h2>Products</h2>
 			<div class="toggle-buttons">
-				<button onclick="toggleView('available')">Available</button>
-				<button onclick="toggleView('recommended')">Recommended</button>
+				<button id="available-btn" class="active-btn" onclick="toggleView('available')">Available</button>
+				<button id="recommended-btn" onclick="toggleView('recommended')">Recommended</button>
 			</div>
 			<div id="available-products">
-				<div class="product">Apple - $1.20</div>
-				<div class="product">Banana - $0.80</div>
+				<% available.forEach(item => { %>
+					<div class="product"><%= item.name %> - $<%= item.price.toFixed(2) %></div>
+				<% }); %>
 			</div>
 			<div id="recommended-products" style="display: none;">
-				<div class="product">Grapes - $2.50</div>
-				<div class="product">Mango - $3.00</div>
+				<% recommended.forEach(item => { %>
+					<div class="product"><%= item.name %> - $<%= item.price.toFixed(2) %></div>
+				<% }); %>
 			</div>
 		</div>
 
 		<!-- Cart Panel -->
 		<div class="panel">
 			<h2>Cart</h2>
-			<div class="checkout-item">Apple - $1.20</div>
-			<div class="checkout-item">Banana - $0.80</div>
-			<div class="checkout-total">Total: $2.00</div>
+			<% cart.forEach(item => { %>
+				<div class="checkout-item"><%= item.name %> - $<%= item.price.toFixed(2) %></div>
+			<% }); %>
+			<div class="checkout-total">
+				Total: $<%= cart.reduce((total, item) => total + item.price, 0).toFixed(2) %>
+			</div>
 		</div>
 	</div>
+
 	<script>
 		function toggleView(view) {
-		  document.getElementById('available-products').style.display = view === 'available' ? 'block' : 'none';
-		  document.getElementById('recommended-products').style.display = view === 'recommended' ? 'block' : 'none';
+			const availableBtn = document.getElementById('available-btn');
+			const recommendedBtn = document.getElementById('recommended-btn');
+
+			document.getElementById('available-products').style.display = view === 'available' ? 'block' : 'none';
+			document.getElementById('recommended-products').style.display = view === 'recommended' ? 'block' : 'none';
+
+			availableBtn.classList.toggle('active-btn', view === 'available');
+			recommendedBtn.classList.toggle('active-btn', view === 'recommended');
 		}
 	</script>
 </body>

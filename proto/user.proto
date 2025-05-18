@@ -3,12 +3,52 @@ syntax = "proto3";
 package user;
 
 service UserService {
+    // Update recommendations from checkout after each transaction
     rpc UpdateRecommendations (stream ProductsRequest) returns (Empty);
+
+    // New unary method using token only in order to use it from dashboard
+    rpc GetSimilarProducts (TokenRequest) returns (SimilarProductsResponse);
+
+    // Retrieve product history using auth token
+    rpc GetUserHistoryProducts (GetUserHistoryRequest) returns (GetUserHistoryResponse);
+}
+
+message TokenRequest {
+  string token = 1;
+}
+
+// Returns the actual Product objects from a product map
+message SimilarProductsResponse {
+  repeated Product products = 1;
+}
+
+message Product {
+  int32 id = 1;
+  string name = 2;
+  string subcategory = 3;
+  float price = 4;
 }
 
 message ProductsRequest {
   string username = 1;
   repeated int32 productIds = 2;
+}
+
+message GetUserHistoryRequest {
+  string token = 1;
+}
+
+message GetUserHistoryResponse {
+  repeated PurchasedProduct products = 1;
+}
+
+message PurchasedProduct {
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  string subcategory = 4;
+  float price = 5;
+  int32 quantity = 6;
 }
 
 message Empty {}

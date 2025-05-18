@@ -18,6 +18,18 @@ router.get('/login', (req, res) => {
 // Login submission
 router.post('/login', controller.handleLogin);
 
+// Logout
+router.post('/logout', (req, res) => {
+	req.session.destroy(err => {
+		if (err) {
+			console.error("Failed to destroy session during logout", err);
+			return res.redirect('/dashboard');
+		}
+		res.clearCookie('connect.sid'); // clears the session cookie
+		res.redirect('/login');
+	});
+});
+
 // Show register page
 router.get('/register', (req, res) => {
 	const error = req.session.error;

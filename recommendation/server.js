@@ -3,7 +3,7 @@ const protoLoader = require("@grpc/proto-loader");
 const fs = require('fs');
 
 // Load .proto file
-const PROTO_PATH = "proto/recommendation.proto";
+const RECOMMENDATION_PROTO_PATH = "proto/recommendation.proto";
 const PRODUCTS_FILE = "data/inventory.json";
 
 // Read products from the file
@@ -12,7 +12,7 @@ if (fs.existsSync(PRODUCTS_FILE)) {
     products = JSON.parse(fs.readFileSync(PRODUCTS_FILE, "utf8"));
 }
 
-const packageDefinition = protoLoader.loadSync(PROTO_PATH);
+const packageDefinition = protoLoader.loadSync(RECOMMENDATION_PROTO_PATH);
 
 const recommendationProto = grpc.loadPackageDefinition(packageDefinition).recommendation;
 
@@ -28,9 +28,10 @@ const recommendationService = {
 	
 			const result = getSimilarProducts(productIds, products);
 	
-			for (const product of result) {
-				call.write({ username, product }); // Stream each recommended product
-			}
+			call.write({
+				username,
+				products: result, // This is a list of Product messages
+			});
 		});
 	
 		call.on("end", () => {

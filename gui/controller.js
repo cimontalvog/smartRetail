@@ -2,6 +2,7 @@ const path = require('path');
 const bcrypt = require("bcrypt");
 const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
+const jwt = require('jsonwebtoken');
 const authPackageDefinition = protoLoader.loadSync("proto/auth.proto");
 const recommendationPackageDefinition = protoLoader.loadSync("proto/recommendation.proto");
 const userPackageDefinition = protoLoader.loadSync("proto/user.proto");
@@ -12,8 +13,10 @@ const authClient = new authProto.AuthService("localhost:50051", grpc.credentials
 const recommendationProto = grpc.loadPackageDefinition(recommendationPackageDefinition).recommendation;
 const recommendationClient = new recommendationProto.RecommendationService("localhost:50054", grpc.credentials.createInsecure());
 
-const userProto = grpc.loadPackageDefinition(userPackageDefinition).recommendation;
+const userProto = grpc.loadPackageDefinition(userPackageDefinition).user;
 const userClient = new userProto.UserService("localhost:50055", grpc.credentials.createInsecure());
+
+const SECRET_KEY = "tokensupersecret"; // Secret used for the JWT token
 
 // Show login page
 exports.showLogin = (req, res) => {
@@ -83,28 +86,39 @@ exports.handleRegister = (req, res) => {
 
 // Show dashboard page
 exports.showDashboard = (req, res) => {
-	// Assuming token is in session and is valid for gRPC authentication
 	const token = req.session.token;
 
-	// Define the product IDs for which recommendations are needed (could be dynamic based on user preferences)
-	const productIds = [1, 2, 3]; // Example product IDs, you may dynamically fetch these
-  
-	console.log("YES!")
+	userClient.GetUserHistoryProducts({ token }, (err, response) => {
+		if (err) {
+			console.error("gRPC error:", err);
+			return res.status(401).send("Unauthorized or failed to load dashboard");
+		}
 
-	// Call the gRPC service to get recommended products
-	recommendationClient.GetSimilarProducts({ token, productIds }, (err, response) => {
-	  if (err) {
-		console.log("WHA?")
-		console.error('Error fetching recommended products:', err);
-		return res.render('dashboard', { error: 'Failed to fetch recommended products' });
-	  }
-  
-	  // Extract the recommended products from the response
-	  const recommendedProducts = response.products || [];
-
-	  console.log("HEY2!")
-  
-	  // Render the dashboard page with the recommended products
-	  res.render('dashboard', { recommendedProducts });
+		const historyProducts = response.products;
+		try {
+			const decoded = jwt.verify(token, SECRET_KEY);
+			res.render('dashboard', {
+				username: decoded.username,
+				history: historyProducts,
+				available: [
+					{ name: "Apple", price: 1.20 },
+					{ name: "Banana", price: 0.80 }
+				],
+				recommended: [
+					{ name: "Grapes", price: 2.50 },
+					{ name: "Mango", price: 3.00 }
+				],
+				cart: [
+					{ name: "Apple", price: 1.20 },
+					{ name: "Banana", price: 0.80 }
+				]
+			});
+		} catch (err) {
+			console.error("Auth error:", err);
+			return callback({
+				code: grpc.status.UNAUTHENTICATED,
+				message: "Invalid or expired token",
+			});
+		}
 	});
 };

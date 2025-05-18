@@ -5,7 +5,7 @@ const fs = require('fs');
 const bcrypt = require("bcrypt");
 
 // Load .proto file
-const PROTO_PATH = "proto/auth.proto";
+const AUTH_PROTO_PATH = "proto/auth.proto";
 const USERS_FILE = "data/users.json";
 
 // Read users from the file
@@ -15,7 +15,7 @@ if (fs.existsSync(USERS_FILE)) {
 }
 
 const SECRET_KEY = "tokensupersecret"; // Secret used for the JWT token
-const packageDefinition = protoLoader.loadSync(PROTO_PATH);
+const packageDefinition = protoLoader.loadSync(AUTH_PROTO_PATH);
 
 const authProto = grpc.loadPackageDefinition(packageDefinition).auth;
 

@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package inventory;
+
+service InventoryService {
+  // Updates quantities for multiple products
+  rpc UpdateQuantities (UpdateQuantitiesRequest) returns (UpdateResponse);
+
+  // Returns all products
+  rpc GetAllProducts (Empty) returns (ProductList);
+}
+
+// Request to update multiple products' quantities
+message UpdateQuantitiesRequest {
+  repeated ProductQuantityUpdate updates = 1;
+}
+
+// Individual product quantity update
+message ProductQuantityUpdate {
+  int32 id = 1;
+  int32 quantity = 2; // Can be positive or negative
+}
+
+// Response after update
+message UpdateResponse {
+  string message = 1;
+  repeated Product updatedProducts = 2;
+}
+
+// Represents a list of products
+message ProductList {
+  repeated Product products = 1;
+}
+
+// Empty request message
+message Empty {}
+
+// Product definition
+message Product {
+  int32 id = 1;
+  string name = 2;
+  string description = 3;
+  string subcategory = 4;
+  float price = 5;
+  int32 availableQuantity = 6;
+}
