@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package user;
+
+service UserService {
+    rpc UpdateRecommendations (stream ProductsRequest) returns (Empty);
+}
+
+message ProductsRequest {
+  string username = 1;
+  repeated int32 productIds = 2;
+}
+
+message Empty {}

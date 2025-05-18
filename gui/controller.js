@@ -4,12 +4,16 @@ const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
 const authPackageDefinition = protoLoader.loadSync("proto/auth.proto");
 const recommendationPackageDefinition = protoLoader.loadSync("proto/recommendation.proto");
+const userPackageDefinition = protoLoader.loadSync("proto/user.proto");
 
 const authProto = grpc.loadPackageDefinition(authPackageDefinition).auth;
 const authClient = new authProto.AuthService("localhost:50051", grpc.credentials.createInsecure());
 
 const recommendationProto = grpc.loadPackageDefinition(recommendationPackageDefinition).recommendation;
 const recommendationClient = new recommendationProto.RecommendationService("localhost:50054", grpc.credentials.createInsecure());
+
+const userProto = grpc.loadPackageDefinition(userPackageDefinition).recommendation;
+const userClient = new userProto.UserService("localhost:50055", grpc.credentials.createInsecure());
 
 // Show login page
 exports.showLogin = (req, res) => {
@@ -79,5 +83,28 @@ exports.handleRegister = (req, res) => {
 
 // Show dashboard page
 exports.showDashboard = (req, res) => {
-	res.render('dashboard');
+	// Assuming token is in session and is valid for gRPC authentication
+	const token = req.session.token;
+
+	// Define the product IDs for which recommendations are needed (could be dynamic based on user preferences)
+	const productIds = [1, 2, 3]; // Example product IDs, you may dynamically fetch these
+  
+	console.log("YES!")
+
+	// Call the gRPC service to get recommended products
+	recommendationClient.GetSimilarProducts({ token, productIds }, (err, response) => {
+	  if (err) {
+		console.log("WHA?")
+		console.error('Error fetching recommended products:', err);
+		return res.render('dashboard', { error: 'Failed to fetch recommended products' });
+	  }
+  
+	  // Extract the recommended products from the response
+	  const recommendedProducts = response.products || [];
+
+	  console.log("HEY2!")
+  
+	  // Render the dashboard page with the recommended products
+	  res.render('dashboard', { recommendedProducts });
+	});
 };

@@ -3,12 +3,12 @@ syntax = "proto3";
 package recommendation;
 
 service RecommendationService {
-  rpc GetSimilarProducts (SimilarProductsRequest) returns (stream Product);
+  rpc GetSimilarProducts (stream ProductsRequest) returns (stream RecommendedProduct);
 }
 
-message SimilarProductsRequest {
-  string token = 1;
-  repeated int32 productIds = 2; // Accept multiple product IDs
+message ProductsRequest {
+  string username = 1;
+  repeated int32 productIds = 2;
 }
 
 message Product {
@@ -16,4 +16,9 @@ message Product {
   string name = 2;
   string subcategory = 3;
   float price = 4;
+}
+
+message RecommendedProduct {
+  string username = 1;
+  Product product = 2;
 }

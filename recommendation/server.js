@@ -1,7 +1,6 @@
 const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
 const fs = require('fs');
-const jwt = require('jsonwebtoken');
 
 // Load .proto file
 const PROTO_PATH = "proto/recommendation.proto";
@@ -13,7 +12,6 @@ if (fs.existsSync(PRODUCTS_FILE)) {
     products = JSON.parse(fs.readFileSync(PRODUCTS_FILE, "utf8"));
 }
 
-const SECRET_KEY = "tokensupersecret"; // Secret used for the JWT token
 const packageDefinition = protoLoader.loadSync(PROTO_PATH);
 
 const recommendationProto = grpc.loadPackageDefinition(packageDefinition).recommendation;
@@ -25,23 +23,24 @@ const w2 = 0.3;
 
 const recommendationService = {
 	GetSimilarProducts: (call) => {
-        const { token, productIds } = call.request;
-    
-        // Validate JWT (optional)
-        jwt.verify(token, SECRET_KEY);
-    
-        const result = getSimilarProducts(productIds, products);
-        if (result.length === 0) {
-            // stream an error
-            call.destroy(new Error("No valid recommendations found"));
-            return;
-        }
-    
-        for (const product of result) {
-            call.write(product); // send each product individually
-        }
-        call.end(); // signal end of stream
-    }
+		call.on("data", (request) => {
+			const { username, productIds } = request;
+	
+			const result = getSimilarProducts(productIds, products);
+	
+			for (const product of result) {
+				call.write({ username, product }); // Stream each recommended product
+			}
+		});
+	
+		call.on("end", () => {
+			call.end(); // End the response stream when client is done
+		});
+	
+		call.on("error", (err) => {
+			console.error("Stream error:", err);
+		});
+	}
 };
 
 function getSimilarProducts(productIds, allProducts) {
