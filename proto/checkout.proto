@@ -1,32 +1,38 @@
-syntax = "proto3";
+syntax = "proto3"; // Specifies the Protocol Buffer language version.
 
-package checkout;
+package checkout; // Declares the package name for this .proto file.
 
+// CheckoutService handles operations related to processing user purchases.
 service CheckoutService {
-  // Confirms and processes the current user's cart (unary)
+  // ConfirmPurchase confirms and processes the current user's cart (unary RPC).
   rpc ConfirmPurchase (ConfirmPurchaseRequest) returns (ConfirmPurchaseResponse);
+  // StreamCheckoutStats provides a stream of real-time checkout statistics (server-streaming RPC).
   rpc StreamCheckoutStats (Empty) returns (stream CheckoutStats);
 }
 
+// ConfirmPurchaseRequest contains the details needed to confirm a purchase.
 message ConfirmPurchaseRequest {
-  string username = 1;
-  repeated ProductQuantityUpdate productQuantityUpdates = 2;
+  string username = 1; // The username of the user making the purchase.
+  repeated ProductQuantityUpdate productQuantityUpdates = 2; // A list of products and their quantities being purchased/updated.
 }
 
-// Individual product quantity update
+// ProductQuantityUpdate represents an individual product's ID and the quantity change.
 message ProductQuantityUpdate {
-  int32 id = 1;
-  int32 quantity = 2; // Can be positive or negative
+  int32 id = 1; // The unique identifier of the product.
+  int32 quantity = 2; // The quantity to update for the product. Can be positive (purchase) or negative (return/cancellation).
 }
 
+// ConfirmPurchaseResponse indicates the outcome of a purchase confirmation.
 message ConfirmPurchaseResponse {
-  bool success = 1;
-  string message = 2;
+  bool success = 1; // Indicates if the purchase was successfully processed (true) or failed (false).
+  string message = 2; // A descriptive message about the purchase outcome (e.g., "Purchase successful", "Insufficient stock").
 }
 
+// CheckoutStats provides real-time statistics about checkouts.
 message CheckoutStats {
-	int32 totalProductsPurchased = 1;  // 0 or more, integer
-	float totalMoneySpent = 2;         // 0.0 or more, float
+	int32 totalProductsPurchased = 1; // The cumulative number of products purchased (0 or more, integer).
+	float totalMoneySpent = 2;       // The cumulative total money spent across all checkouts (0.0 or more, float).
 }
 
+// Empty is a generic message used when an RPC method requires no parameters.
 message Empty {}

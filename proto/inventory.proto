@@ -1,46 +1,47 @@
-syntax = "proto3";
+syntax = "proto3"; // Specifies the Protocol Buffer language version.
 
-package inventory;
+package inventory; // Declares the package name for this .proto file.
 
+// InventoryService manages product inventory, including quantity updates and retrieving product lists.
 service InventoryService {
-  // Updates quantities for multiple products
+  // UpdateQuantities updates the quantities for multiple products in the inventory.
   rpc UpdateQuantities (UpdateQuantitiesRequest) returns (UpdateResponse);
 
-  // Returns all products
+  // GetAllProducts returns a comprehensive list of all products currently in the inventory.
   rpc GetAllProducts (Empty) returns (ProductList);
 }
 
-// Request to update multiple products' quantities
+// UpdateQuantitiesRequest defines the request to update multiple products' quantities.
 message UpdateQuantitiesRequest {
-  repeated ProductQuantityUpdate updates = 1;
+  repeated ProductQuantityUpdate updates = 1; // A list of product quantity updates.
 }
 
-// Individual product quantity update
+// ProductQuantityUpdate represents an individual product's ID and the quantity change.
 message ProductQuantityUpdate {
-  int32 id = 1;
-  int32 quantity = 2; // Can be positive or negative
+  int32 id = 1; // The unique identifier of the product.
+  int32 quantity = 2; // The quantity to update for the product. Can be positive (add stock) or negative (reduce stock).
 }
 
-// Response after update
+// UpdateResponse defines the response after an inventory update operation.
 message UpdateResponse {
-  string message = 1;
-  repeated Product updatedProducts = 2;
+  string message = 1; // A message indicating the result of the update (e.g., "Inventory updated", "Some products not found").
+  repeated Product updatedProducts = 2; // A list of the products that were updated, with their new details.
 }
 
-// Represents a list of products
+// ProductList represents a collection of Product messages.
 message ProductList {
-  repeated Product products = 1;
+  repeated Product products = 1; // A list of Product messages.
 }
 
-// Empty request message
+// Empty is a generic message used when an RPC method requires no parameters.
 message Empty {}
 
-// Product definition
+// Product defines the structure for a single product in the inventory.
 message Product {
-  int32 id = 1;
-  string name = 2;
-  string description = 3;
-  string subcategory = 4;
-  float price = 5;
-  int32 availableQuantity = 6;
+  int32 id = 1; // Unique identifier for the product.
+  string name = 2; // Name of the product.
+  string description = 3; // Description of the product.
+  string subcategory = 4; // Subcategory the product belongs to (e.g., "Laptop", "Smartphone").
+  float price = 5; // The price of a single unit of the product.
+  int32 availableQuantity = 6; // The current available stock quantity of the product.
 }

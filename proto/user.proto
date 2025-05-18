@@ -1,42 +1,50 @@
-syntax = "proto3";
+syntax = "proto3"; // Specifies the Protocol Buffer language version.
 
-package user;
+package user; // Declares the package name for this .proto file.
 
+// UserService manages user-specific data, including recommendations and purchase history.
 service UserService {
-    // Update recommendations from checkout after each transaction
-    rpc UpdateRecommendations (stream ProductsRequest) returns (Empty);
+  // UpdateRecommendations receives a stream of products (e.g., from checkout) to update user's recommendation profile (client-streaming RPC).
+  rpc UpdateRecommendations (stream ProductsRequest) returns (Empty);
 
-    // New unary method using token only in order to use it from dashboard
-    rpc GetSimilarProducts (TokenRequest) returns (SimilarProductsResponse);
+  // GetSimilarProducts retrieves product recommendations for a user based on their authentication token (unary RPC).
+  // This is a new method designed for direct use, e.g., from a dashboard.
+  rpc GetSimilarProducts (TokenRequest) returns (SimilarProductsResponse);
 
-    // Retrieve product history using auth token
-    rpc GetUserHistoryProducts (TokenRequest) returns (GetUserHistoryResponse);
+  // GetUserHistoryProducts retrieves a user's past purchase history using their authentication token (unary RPC).
+  rpc GetUserHistoryProducts (TokenRequest) returns (GetUserHistoryResponse);
 }
 
+// TokenRequest contains an authentication token for secure requests.
 message TokenRequest {
-  string token = 1;
+  string token = 1; // The authentication token provided by the user.
 }
 
+// SimilarProductsResponse contains a list of product IDs recommended to a user.
 message SimilarProductsResponse {
-  repeated int32 productIds = 1;
+  repeated int32 productIds = 1; // A list of product IDs that are similar or recommended to the user.
 }
 
+// ProductsRequest contains information about products a user is interacting with, typically for recommendation updates.
 message ProductsRequest {
-  string username = 1;
-  repeated int32 productIds = 2;
+  string username = 1; // The username of the user.
+  repeated int32 productIds = 2; // A list of product IDs related to the user's activity (e.g., newly purchased).
 }
 
+// GetUserHistoryResponse contains a list of products previously purchased by a user.
 message GetUserHistoryResponse {
-  repeated PurchasedProduct products = 1;
+  repeated PurchasedProduct products = 1; // A list of products the user has purchased in the past.
 }
 
+// PurchasedProduct defines the structure for a product that was previously purchased by a user.
 message PurchasedProduct {
-  int32 id = 1;
-  string name = 2;
-  string description = 3;
-  string subcategory = 4;
-  float price = 5;
-  int32 quantity = 6;
+  int32 id = 1; // Unique identifier for the purchased product.
+  string name = 2; // Name of the purchased product.
+  string description = 3; // Description of the purchased product.
+  string subcategory = 4; // Subcategory of the purchased product.
+  float price = 5; // The price at which the product was purchased.
+  int32 quantity = 6; // The quantity of this product that was purchased in that transaction.
 }
 
+// Empty is a generic message used when an RPC method requires no parameters.
 message Empty {}

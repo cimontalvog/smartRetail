@@ -1,107 +1,172 @@
 /* ====== Global Reset and Base Styles ====== */
+/* Applies to all elements (*) */
 * {
-	box-sizing: border-box;
-	font-family: Arial, sans-serif;
-	margin: 0;
-	padding: 0;
+    /* Ensures padding and border are included in the element's total width and height */
+    box-sizing: border-box;
+    /* Sets the default font to Arial or any generic sans-serif font */
+    font-family: Arial, sans-serif;
+    /* Resets default browser margin for all elements */
+    margin: 0;
+    /* Resets default browser padding for all elements */
+    padding: 0;
 }
 
 /* ====== Body Styling ====== */
 body {
-	background-color: #f5f7fa;
-	padding: 20px;
+    /* Sets a light greyish-blue background color for the entire page */
+    background-color: #f5f7fa;
+    /* Adds 20 pixels of padding around the entire body content */
+    padding: 20px;
 }
 
 /* ====== Heading Styles ====== */
+/* Styles for the main page heading (h1) */
 h1 {
-	text-align: center;
-	margin-bottom: 20px;
-	color: #333;
+    /* Centers the text horizontally */
+    text-align: center;
+    /* Adds space below the heading */
+    margin-bottom: 20px;
+    /* Sets the text color to a dark grey */
+    color: #333;
 }
 
 /* ====== Layout Container ====== */
+/* Styles for the main dashboard layout container */
 .dashboard {
-	display: grid;
-	grid-template-columns: 1fr 2fr 1fr;
-	gap: 20px;
+    /* Enables CSS Grid for layout */
+    display: grid;
+    /* Defines three columns: one flexible unit, two flexible units, one flexible unit */
+    grid-template-columns: 1fr 2fr 1fr;
+    /* Sets the spacing between grid items */
+    gap: 20px;
 }
 
 /* ====== Panel Styling (Reusable Container) ====== */
+/* Styles applied to generic panel containers within the dashboard */
 .panel {
-	background-color: #fff;
-	padding: 20px;
-	border-radius: 8px;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-	overflow-y: auto;
-	height: 80vh;
+    /* Sets the background color of the panel to white */
+    background-color: #fff;
+    /* Adds 20 pixels of padding inside the panel */
+    padding: 20px;
+    /* Rounds the corners of the panel */
+    border-radius: 8px;
+    /* Applies a subtle shadow for depth */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    /* Enables vertical scrolling if content overflows the panel's height */
+    overflow-y: auto;
+    /* Sets the height of the panel to 80% of the viewport height */
+    height: 80vh;
 }
 
 /* ====== Panel Headings ====== */
+/* Styles for h2 headings specifically within panel containers */
 .panel h2 {
-	margin-bottom: 15px;
-	color: #555;
+    /* Adds space below the heading */
+    margin-bottom: 15px;
+    /* Sets the text color to a medium grey */
+    color: #555;
 }
 
 /* ====== Reusable Item Cards ====== */
+/* Styles for various item cards like products, history items, and checkout items */
 .product,
 .history-item,
 .checkout-item {
-	margin-bottom: 10px;
-	padding: 10px;
-	border: 1px solid #ddd;
-	border-radius: 6px;
-	background-color: #fafafa;
+    /* Adds space below each item */
+    margin-bottom: 10px;
+    /* Adds padding inside each item */
+    padding: 10px;
+    /* Adds a light grey border around each item */
+    border: 1px solid #ddd;
+    /* Rounds the corners of the item cards */
+    border-radius: 6px;
+    /* Sets a very light grey background for the item cards */
+    background-color: #fafafa;
 }
 
 /* ====== Checkout Total Styling ====== */
+/* Styles for the total amount displayed in the checkout section */
 .checkout-total {
-	font-weight: bold;
-	margin-top: 20px;
-	font-size: 1.2em;
+    /* Makes the text bold */
+    font-weight: bold;
+    /* Adds space above the total */
+    margin-top: 20px;
+    /* Increases the font size to 1.2 times the default */
+    font-size: 1.2em;
 }
 
 /* ====== Button Styling ====== */
+/* General styles for all button elements */
 button {
-	padding: 8px 12px;
-	margin-top: 10px;
-	border: none;
-	background-color: #007bff;
-	color: #fff;
-	border-radius: 4px;
-	cursor: pointer;
+    /* Adds padding inside the button */
+    padding: 8px 12px;
+    /* Adds space above the button */
+    margin-top: 10px;
+    /* Removes the default button border */
+    border: none;
+    /* Sets a primary blue background color */
+    background-color: #007bff;
+    /* Sets the text color to white */
+    color: #fff;
+    /* Rounds the corners of the button */
+    border-radius: 4px;
+    /* Changes the cursor to a pointer hand on hover, indicating interactivity */
+    cursor: pointer;
 }
 
+/* Styles for buttons when hovered over */
 button:hover {
-	background-color: #0056b3;
+    /* Darkens the background color on hover */
+    background-color: #0056b3;
 }
 
 /* ====== Toggle Buttons ====== */
+/* Container for toggle buttons */
 .toggle-buttons {
-	margin-bottom: 1rem;
+    /* Adds space below the toggle button group */
+    margin-bottom: 1rem;
 }
 
+/* Individual toggle button styles */
 .toggle-buttons button {
-	margin-right: 0.5rem;
-	padding: 0.5rem 1rem;
-	cursor: pointer;
-	background-color: #e0e0e0;
-	color: #333;
-	border: none;
-	border-radius: 4px;
+    /* Adds space to the right of each button */
+    margin-right: 0.5rem;
+    /* Adds padding inside the button */
+    padding: 0.5rem 1rem;
+    /* Changes the cursor to a pointer hand on hover */
+    cursor: pointer;
+    /* Sets a light grey background */
+    background-color: #e0e0e0;
+    /* Sets the text color to a dark grey */
+    color: #333;
+    /* Removes the default button border */
+    border: none;
+    /* Rounds the corners of the button */
+    border-radius: 4px;
 }
 
+/* Styles for the active (selected) toggle button */
 .toggle-buttons .active-btn {
-	background-color: #007bff;
-	color: white;
+    /* Sets a primary blue background color */
+    background-color: #007bff;
+    /* Sets the text color to white */
+    color: white;
 }
 
+/* Styles for the header section */
 .header {
-	position: relative;
+    /* Sets the positioning context for absolutely positioned children */
+    position: relative;
 }
 
+/* Styles for the logout form, positioned within the header */
 .logout-form {
-	position: absolute;
-	top: 0;
-	right: 0;
-	margin: 10px 20px 0 0; /* top:10px, right:20px */
+    /* Positions the element relative to its nearest positioned ancestor (the .header) */
+    position: absolute;
+    /* Aligns the top edge with the top edge of the parent */
+    top: 0;
+    /* Aligns the right edge with the right edge of the parent */
+    right: 0;
+    /* Adds margin to the top (10px) and right (20px), no margin on bottom/left */
+    margin: 10px 20px 0 0; /* top:10px, right:20px */
 }

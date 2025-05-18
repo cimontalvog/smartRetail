@@ -1,130 +1,119 @@
 const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
+const fs = require('fs');
 
-// Load .proto files
+// --- Configuration and Protobuf ---
+
 const RECOMMENDATION_PROTO_PATH = "proto/recommendation.proto";
+const INVENTORY_PROTO_PATH = "proto/inventory.proto";
 
+// Load protobuf definitions
 const packageDefinition = protoLoader.loadSync(RECOMMENDATION_PROTO_PATH);
+const inventoryPackageDefinition = protoLoader.loadSync(INVENTORY_PROTO_PATH);
 
+// Get package objects
 const recommendationProto = grpc.loadPackageDefinition(packageDefinition).recommendation;
+const inventoryProto = grpc.loadPackageDefinition(inventoryPackageDefinition).inventory;
 
-// Using a KNN weighted metric for recommendations, that includes subcategory and prices regarding
-// previously purchased products
-const w1 = 0.7;
-const w2 = 0.3;
+// Create Inventory service client
+const inventoryClient = new inventoryProto.InventoryService("localhost:50053", grpc.credentials.createInsecure());
+
+// --- Recommendation Service Implementation ---
 
 const recommendationService = {
-	GetSimilarProducts: (call) => {
-		call.on("data", (request) => {
-			const { username, productIds } = request;
+    // Handles bidirectional streaming for similar products
+    GetSimilarProducts: (call) => {
+        // Process incoming client data
+        call.on("data", (request) => {
+            const { username, productIds } = request;
 
-			console.log(request);
+            console.log(request);
 
-			inventoryClient.GetAllProducts({}, (err, inventoryResponse) => {
-				if (err) {
-					console.error("Inventory gRPC error:", err);
-					return res.status(500).send("Failed to load available products");
-				}
-			
-				const products = inventoryResponse.products;
-	
-				const result = getSimilarProducts(productIds, products);
+            // Fetch all products from Inventory service
+            inventoryClient.GetAllProducts({}, (err, inventoryResponse) => {
+                if (err) {
+                    console.error("Inventory gRPC error:", err);
+                    return; // Fail silently or handle stream error more robustly
+                }
 
-				console.log(result);
-		
-				call.write({
-					username,
-					productIds: result, // This is a list of Product messages
-				});
-			});
-		});
-	
-		call.on("end", () => {
-			call.end(); // End the response stream when client is done
-		});
-	
-		call.on("error", (err) => {
-			console.error("Stream error:", err);
-		});
-	}
+                const products = inventoryResponse.products;
+
+                // Calculate similar products
+                const result = getSimilarProducts(productIds, products);
+
+                console.log(result);
+
+                // Write recommended product IDs back to client stream
+                call.write({
+                    username,
+                    productIds: result,
+                });
+            });
+        });
+
+        // End response stream when client stream ends
+        call.on("end", () => {
+            call.end();
+        });
+
+        // Log stream errors
+        call.on("error", (err) => {
+            console.error("Stream error:", err);
+        });
+    }
 };
 
 /**
- * Returns a list of product IDs that are most similar to the ones already purchased.
- *
- * @param {number[]} productIds - Array of product IDs that the user has already purchased.
- * @param {Object[]} allProducts - Array of all available product objects, each with `id`, `price`, and `subcategory`.
- * @returns {number[]} - Array of recommended product IDs, sorted by descending similarity.
+ * Recommends products based on similarity to purchased items.
+ * @param {number[]} productIds - IDs of products already purchased.
+ * @param {Object[]} allProducts - All available products.
+ * @returns {number[]} - IDs of recommended products.
  */
 function getSimilarProducts(productIds, allProducts) {
-	// Step 1: Extract the list of purchased products from the full product catalog
-	const purchased = allProducts.filter(p => productIds.includes(p.id));
+    const purchased = allProducts.filter(p => productIds.includes(p.id));
 
-	// If no purchases yet, we can't calculate similarity — return empty list
-	if (!purchased.length) return [];
+    if (!purchased.length) return [];
 
-	// Step 2: Compute the maximum price difference between any purchased product and all products.
-	// This is used to normalize price differences later so that the scoring scale is consistent.
-	const maxPriceDiff = Math.max(
-		...purchased.flatMap(p1 =>
-			allProducts.map(p2 => Math.abs(p1.price - p2.price))
-		)
-	) || 1; // Avoid division by zero by defaulting to 1 if all prices are the same
+    // Calculate max price difference for normalization
+    const maxPriceDiff = Math.max(
+        ...purchased.flatMap(p1 =>
+            allProducts.map(p2 => Math.abs(p1.price - p2.price))
+        )
+    ) || 1;
 
-	// Step 3: Generate random weights for the two scoring factors:
-	// - w1: weight for subcategory similarity
-	// - w2: weight for price proximity
-	// These weights introduce slight randomization for freshness in recommendations
-	const [w1, w2] = (() => {
-		const w1 = 0.6 + Math.random() * 0.2; // Random value between 0.6 and 0.8
-		return [w1, 1 - w1]; // Ensure weights sum to 1
-	})();
+    // Generate random weights for subcategory and price
+    const [w1, w2] = (() => {
+        const w1 = 0.6 + Math.random() * 0.2;
+        return [w1, 1 - w1];
+    })();
 
-	// Step 4: For each non-purchased product, calculate a similarity score
-	// The score is based on two factors:
-	//   - Whether the subcategory matches any purchased product
-	//   - How close the price is to purchased products (closer is better)
-	const scored = allProducts
-		.filter(p => !productIds.includes(p.id)) // Only consider products not already purchased
-		.map(p => {
-			// For each product, compute the average similarity score against all purchased products
-			const scoreSum = purchased.reduce((sum, target) => {
-				// Check if the subcategory is the same (1 for match, 0 for mismatch)
-				const sameSub = p.subcategory === target.subcategory ? 1 : 0;
+    // Score and sort non-purchased products
+    const scored = allProducts
+        .filter(p => !productIds.includes(p.id))
+        .map(p => {
+            const scoreSum = purchased.reduce((sum, target) => {
+                const sameSub = p.subcategory === target.subcategory ? 1 : 0;
+                const priceScore = 1 - Math.abs(p.price - target.price) / maxPriceDiff;
+                const similarity = w1 * sameSub + w2 * priceScore;
+                return sum + similarity;
+            }, 0);
 
-				// Normalize the price difference to a 0-1 range, where 1 means very similar price
-				const priceScore = 1 - Math.abs(p.price - target.price) / maxPriceDiff;
+            const avgScore = scoreSum / purchased.length;
+            return { ...p, score: avgScore };
+        })
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3) // Top 3 recommendations
+        .map(p => p.id);
 
-				// Combine the two components using weighted average
-				const similarity = w1 * sameSub + w2 * priceScore;
-
-				// Accumulate score
-				return sum + similarity;
-			}, 0);
-
-			// Average the total score across all purchased products
-			const avgScore = scoreSum / purchased.length;
-
-			// Return the product with its calculated score
-			return { ...p, score: avgScore };
-		})
-
-		// Step 5: Sort the scored products in descending order of similarity
-		.sort((a, b) => b.score - a.score)
-
-		// Step 6: Take the top 3 most similar products
-		.slice(0, 3)
-
-		// Step 7: Return only their IDs
-		.map(p => p.id);
-
-	return scored;
+    return scored;
 }
 
+// --- gRPC Server Setup ---
 
-// Start gRPC Server
 const server = new grpc.Server();
 server.addService(recommendationProto.RecommendationService.service, recommendationService);
+
+// Bind and start the server
 server.bindAsync("0.0.0.0:50054", grpc.ServerCredentials.createInsecure(), () => {
     console.log("gRPC Recommendation Server running on port 50054...");
 });

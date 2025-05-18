@@ -42,12 +42,16 @@
 		<div></div>
 	</div>
 	<script>
-		function preparePayload() {
-			let cart = JSON.parse('<%- JSON.stringify(cart) %>');
-			const simplified = cart.map(p => ({ id: p.id, quantity: p.quantity || 1 }));
-			document.getElementById('productsInput').value = JSON.stringify(simplified);
-			return true; // Allow form to submit
-		}
+		// JavaScript function to prepare the payload for the purchase confirmation
+        function preparePayload() {
+            // Parses the 'cart' data passed from the server as a JSON string into a JavaScript array
+            let cart = JSON.parse('<%- JSON.stringify(cart) %>');
+            // Maps the 'cart' array to a new array containing only 'id' and 'quantity' for each product
+            const simplified = cart.map(p => ({ id: p.id, quantity: p.quantity || 1 }));
+            // Sets the value of the hidden input 'productsInput' to the JSON string representation of the simplified cart
+            document.getElementById('productsInput').value = JSON.stringify(simplified);
+            return true; // Returns true to allow the form to be submitted
+        }
 	</script>
 </body>
 </html>

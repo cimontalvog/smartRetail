@@ -1,81 +1,102 @@
-const grpc = require("@grpc/grpc-js");
-const protoLoader = require("@grpc/proto-loader");
-const jwt = require('jsonwebtoken');
-const fs = require('fs');
-const bcrypt = require("bcrypt");
+const grpc = require("@grpc/grpc-js"); // gRPC library
+const protoLoader = require("@grpc/proto-loader"); // For loading .proto files
+const jwt = require('jsonwebtoken'); // For JSON Web Token (JWT) handling
+const fs = require('fs'); // Node.js File System module
+const bcrypt = require("bcrypt"); // For password hashing
 
-// Load .proto file
+// --- Configuration and Data Loading ---
+
+// Define paths for the Protobuf definition and user data file
 const AUTH_PROTO_PATH = "proto/auth.proto";
 const USERS_FILE = "data/users.json";
 
-// Read users from the file
+// Initialize users array; load existing users from file if it exists
 let users = [];
 if (fs.existsSync(USERS_FILE)) {
-	users = JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
+    users = JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
 }
 
-const SECRET_KEY = "tokensupersecret"; // Secret used for the JWT token
-const packageDefinition = protoLoader.loadSync(AUTH_PROTO_PATH);
+const SECRET_KEY = "tokensupersecret"; // Secret key for JWT signing
 
+// Load the Protobuf definition for the Auth service
+const packageDefinition = protoLoader.loadSync(AUTH_PROTO_PATH);
 const authProto = grpc.loadPackageDefinition(packageDefinition).auth;
 
-// Implement the AuthService
+// --- AuthService Implementation ---
+
+// Implement the RPC methods defined in AuthService
 const authService = {
+    // Handles user login requests
     Login: (call, callback) => {
-        const { username, password } = call.request;
+        const { username, password } = call.request; // Extract username and password from the request
 
-		const user = users.find(u => u.username === username);
+        // Find the user in the loaded users data
+        const user = users.find(u => u.username === username);
 
-		if (!user) {
-			console.log("User " + user + " doesn't exist")
-			return callback(null, { success: false, token: '' });
-		}
+        // If user not found, return unsuccessful login
+        if (!user) {
+            console.log("User " + user + " doesn't exist")
+            return callback(null, { success: false, token: '' });
+        }
 
-		// Compare hashed password
-		bcrypt.compare(password, user.password, (err, result) => {
-			if (err || !result) {
-				return callback(null, { success: false, token: "" });
-			}
+        // Compare the provided password with the stored hashed password
+        bcrypt.compare(password, user.password, (err, result) => {
+            // If password comparison fails or an error occurs, return unsuccessful login
+            if (err || !result) {
+                return callback(null, { success: false, token: "" });
+            }
 
-			const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: "1h" });
-			callback(null, { success: true, token });
-		});
+            // If passwords match, sign a JWT token and return successful login
+            const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: "1h" });
+            callback(null, { success: true, token });
+        });
     },
-    Register:(call, callback) => {
-        const { username, password } = call.request;
 
-		if (users.find(u => u.username === username)) {
-			return callback(null, {
-				success: false,
-				message: 'Username already exists'
-			});
-		}
+    // Handles new user registration requests
+    Register: (call, callback) => {
+        const { username, password } = call.request; // Extract username and password from the request
 
-		users.push({ username, password, cart: [], history: [] });
-		fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+        // Check if username already exists
+        if (users.find(u => u.username === username)) {
+            return callback(null, {
+                success: false,
+                message: 'Username already exists'
+            });
+        }
 
-		let message = "User " + username + " has registered successfully"
+        // Add new user to the users array and save to file
+        users.push({ username, password, cart: [], history: [] }); // Initialize empty cart and history for new user
+        fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2)); // Persist users data
 
-		console.log(message);
+        let message = "User " + username + " has registered successfully"
 
-		callback(null, {
-			success: true,
-			message: message
-		});
+        console.log(message);
+
+        // Return successful registration response
+        callback(null, {
+            success: true,
+            message: message
+        });
     }
 };
 
-// Start gRPC Server
+// --- gRPC Server Setup and Start ---
+
+// Create a new gRPC server instance
 const server = new grpc.Server();
 
+// Add the AuthService implementation to the server
 server.addService(authProto.AuthService.service, authService);
 
-server.bindAsync("0.0.0.0:50051", grpc.ServerCredentials.createInsecure(), (err, port) => 
-	{
-		if (err) {
-		console.error("Failed to bind gRPC server:", err);
-		return;
-		}
-		console.log(`gRPC Auth Server running on port ${port}...`);
-  	}
+// Bind the server to an address and port, and start it
+server.bindAsync("0.0.0.0:50051", grpc.ServerCredentials.createInsecure(), (err, port) =>
+    {
+        // Handle binding errors
+        if (err) {
+        console.error("Failed to bind gRPC server:", err);
+        return;
+        }
+        // Log successful server startup
+        console.log(`gRPC Auth Server running on port ${port}...`);
+    }
 );

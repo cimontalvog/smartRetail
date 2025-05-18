@@ -1,17 +1,21 @@
-syntax = "proto3";
+syntax = "proto3"; // Specifies the Protocol Buffer language version.
 
-package recommendation;
+package recommendation; // Declares the package name for this .proto file.
 
+// RecommendationService provides product recommendations, likely based on user behavior or product similarity.
 service RecommendationService {
+  // GetSimilarProducts receives a stream of products from a user and returns a stream of recommended products (bidirectional streaming RPC).
   rpc GetSimilarProducts (stream ProductsRequest) returns (stream RecommendedProducts);
 }
 
+// ProductsRequest contains information about products a user is interacting with for recommendations.
 message ProductsRequest {
-  string username = 1;
-  repeated int32 productIds = 2;
+  string username = 1; // The username of the user for whom recommendations are being generated.
+  repeated int32 productIds = 2; // A list of product IDs that the user has shown interest in (e.g., viewed, purchased).
 }
 
+// RecommendedProducts contains a list of product IDs recommended to a user.
 message RecommendedProducts {
-  string username = 1;
-  repeated int32 productIds = 2;
+  string username = 1; // The username for whom the recommendations are intended.
+  repeated int32 productIds = 2; // A list of product IDs recommended to the user.
 }

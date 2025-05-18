@@ -66,73 +66,88 @@
 	</div>
 
 	<script>
-		const availableProducts = JSON.parse('<%- JSON.stringify(available) %>');
-		let cart = JSON.parse('<%- JSON.stringify(cart) %>');
-		const hiddenInput = document.getElementById('cart-input');
+		// JavaScript variables initialized with data passed from the server
+        const availableProducts = JSON.parse('<%- JSON.stringify(available) %>'); // Parses available products data into a JS array
+        let cart = JSON.parse('<%- JSON.stringify(cart) %>'); // Parses initial cart data into a JS array
+        const hiddenInput = document.getElementById('cart-input'); // Gets reference to the hidden input field for the cart data
 
-		function toggleView(view) {
-			const availableBtn = document.getElementById('available-btn');
-			const recommendedBtn = document.getElementById('recommended-btn');
+        // Function to toggle between "Available Products" and "Recommended Products" views
+        function toggleView(view) {
+            const availableBtn = document.getElementById('available-btn'); // Get available button element
+            const recommendedBtn = document.getElementById('recommended-btn'); // Get recommended button element
 
-			document.getElementById('available-products').style.display = view === 'available' ? 'block' : 'none';
-			document.getElementById('recommended-products').style.display = view === 'recommended' ? 'block' : 'none';
+            // Shows the selected product view and hides the other
+            document.getElementById('available-products').style.display = view === 'available' ? 'block' : 'none';
+            document.getElementById('recommended-products').style.display = view === 'recommended' ? 'block' : 'none';
 
-			availableBtn.classList.toggle('active-btn', view === 'available');
-			recommendedBtn.classList.toggle('active-btn', view === 'recommended');
-		}
+            // Adds or removes the 'active-btn' class based on the selected view for visual styling
+            availableBtn.classList.toggle('active-btn', view === 'available');
+            recommendedBtn.classList.toggle('active-btn', view === 'recommended');
+        }
 
-		function modifyCart(productName, delta) {
-			const product = availableProducts.find(p => p.name === productName);
-			if (!product) return;
+        // Function to add or remove products from the client-side cart
+        function modifyCart(productName, delta) {
+            // Finds the product in the availableProducts array by its name
+            const product = availableProducts.find(p => p.name === productName);
+            if (!product) return; // If product not found, exit
 
-			const existing = cart.find(item => item.name === productName);
-			const existingQty = existing?.quantity || 0;
+            // Finds if the product already exists in the cart
+            const existing = cart.find(item => item.name === productName);
+            const existingQty = existing?.quantity || 0; // Get existing quantity, default to 0 if not in cart
 
-			if (delta > 0) {
-				if (existingQty < (product.availableQuantity ?? Infinity)) {
-					if (existing) {
-						existing.quantity += 1;
-					} else {
-						cart.push({ id: product.id, name: product.name, price: product.price, quantity: 1 });
-					}
-				} else {
-					alert("No more stock available for " + product.name);
-				}
-			} else if (delta < 0) {
-				if (existing) {
-					existing.quantity -= 1;
-					if (existing.quantity <= 0) {
-						cart = cart.filter(item => item.name !== productName);
-					}
-				}
-			}
+            if (delta > 0) { // If adding to cart (+)
+                // Check if adding more than available stock (if availableQuantity is defined)
+                if (existingQty < (product.availableQuantity ?? Infinity)) {
+                    if (existing) {
+                        existing.quantity += 1; // Increment quantity if product is already in cart
+                    } else {
+                        // Add new product to cart with quantity 1
+                        cart.push({ id: product.id, name: product.name, price: product.price, quantity: 1 });
+                    }
+                } else {
+                    alert("No more stock available for " + product.name); // Alert if stock is insufficient
+                }
+            } else if (delta < 0) { // If removing from cart (-)
+                if (existing) {
+                    existing.quantity -= 1; // Decrement quantity
+                    if (existing.quantity <= 0) {
+                        // Remove product from cart if quantity drops to 0 or less
+                        cart = cart.filter(item => item.name !== productName);
+                    }
+                }
+            }
 
-			renderCart();
-		}
+            renderCart(); // Re-render the cart display after modification
+        }
 
-		function renderCart() {
-			const container = document.getElementById('cart-container');
-			const totalElem = document.getElementById('cart-total');
+        // Function to render (update) the cart display in the HTML
+        function renderCart() {
+            const container = document.getElementById('cart-container'); // Get cart container element
+            const totalElem = document.getElementById('cart-total'); // Get cart total display element
 
-			container.innerHTML = '';
-			let total = 0;
+            container.innerHTML = ''; // Clear previous cart items
+            let total = 0; // Initialize total price
 
-			cart.forEach(item => {
-				const quantity = item.quantity || 1;
-				const price = item.price * quantity;
-				total += price;
+            // Loop through each item in the updated cart array
+            cart.forEach(item => {
+                const quantity = item.quantity || 1; // Get item quantity, default to 1
+                const price = item.price * quantity; // Calculate total price for this item
+                total += price; // Add to overall cart total
 
-				const div = document.createElement('div');
-				div.className = 'checkout-item';
-				div.textContent = `${item.name} x${quantity} - $${price.toFixed(2)}`;
-				container.appendChild(div);
-			});
+                const div = document.createElement('div'); // Create a new div for the cart item
+                div.className = 'checkout-item'; // Assign CSS class
+                div.textContent = `${item.name} x${quantity} - $${price.toFixed(2)}`; // Set text content
+                container.appendChild(div); // Add item div to cart container
+            });
 
-			totalElem.textContent = `Total: $${total.toFixed(2)}`;
+            totalElem.textContent = `Total: $${total.toFixed(2)}`; // Update the displayed total price
 
-			// Update the hidden input with JSON string of cart
-			hiddenInput.value = JSON.stringify(cart);
-		}
+            // Update the hidden input with the current cart data as a JSON string for form submission
+            hiddenInput.value = JSON.stringify(cart);
+        }
+
+        // Initial render of the cart when the page loads (to display any initial cart items from the server)
+        renderCart();
 	</script>
 </body>
 </html>

@@ -1,28 +1,35 @@
-syntax = "proto3";
+syntax = "proto3"; // Specifies the Protocol Buffer language version.
 
-package auth;
+package auth; // Declares the package name for this .proto file, helping to prevent naming conflicts.
 
+// AuthService defines the gRPC service for user authentication operations.
 service AuthService {
+	// Login allows a user to authenticate with their username and password.
 	rpc Login(LoginRequest) returns (LoginResponse);
+	// Register allows a new user to create an account.
 	rpc Register(RegisterRequest) returns (RegisterResponse);
 }
 
+// LoginRequest defines the structure for a user's login credentials.
 message LoginRequest {
-	string username = 1;
-	string password = 2;
+	string username = 1; // The username provided by the user.
+	string password = 2; // The password provided by the user.
 }
 
+// LoginResponse defines the structure for the result of a login attempt.
 message LoginResponse {
-	bool success = 1;
-	string token = 2;
+	bool success = 1; // Indicates if the login was successful (true) or failed (false).
+	string token = 2; // An authentication token returned upon successful login, used for subsequent authenticated requests.
 }
 
+// RegisterRequest defines the structure for new user registration details.
 message RegisterRequest {
-	string username = 1;
-	string password = 2;
+	string username = 1; // The desired username for the new account.
+	string password = 2; // The desired password for the new account.
 }
 
+// RegisterResponse defines the structure for the result of a registration attempt.
 message RegisterResponse {
-	bool success = 1;
-	string message = 2;
+	bool success = 1; // Indicates if the registration was successful (true) or failed (false).
+	string message = 2; // A message providing details about the registration outcome.
 }
