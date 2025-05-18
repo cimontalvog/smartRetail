@@ -36,14 +36,14 @@ const recommendationStream = recommendationClient.GetSimilarProducts();
 
 // Handle incoming recommended products from the server
 recommendationStream.on("data", (response) => {
-    const { username, products } = response;
+    const { username, productIds } = response;
 
 	if (!lastRecommendationsMap.has(username)) {
 		lastRecommendationsMap.set(username, []);
 	}
 
 	const existing = lastRecommendationsMap.get(username);
-	const updated = existing.concat(products).slice(-5); // Keep only last 5
+	const updated = existing.concat(productIds).slice(-5); // Keep only last 5
 	lastRecommendationsMap.set(username, updated);
 
 	console.log(`Updated recommendations for ${username}:`);
@@ -89,12 +89,13 @@ const userService = {
 			});
 		}
 
-		const products = lastRecommendationsMap.get(username) || [];
+        console.log("Getting recommended products for " + username);
+
+		const productIds = lastRecommendationsMap.get(username) || [];
 
 		// Return the full list of products (repeated field)
 		callback(null, {
-			username,
-			products, // assumed to be array of Product messages
+			productIds: [] // assumed to be array of Product messages
 		});
 	},
     GetUserHistoryProducts: (call, callback) => {
@@ -120,7 +121,7 @@ const userService = {
             });
         }
 
-        console.log("Getting products for : " + user.username);
+        console.log("Getting product history for: " + user.username);
     
         // Call the inventory service to get all products
         inventoryClient.GetAllProducts({}, (err, response) => {

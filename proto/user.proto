@@ -10,32 +10,20 @@ service UserService {
     rpc GetSimilarProducts (TokenRequest) returns (SimilarProductsResponse);
 
     // Retrieve product history using auth token
-    rpc GetUserHistoryProducts (GetUserHistoryRequest) returns (GetUserHistoryResponse);
+    rpc GetUserHistoryProducts (TokenRequest) returns (GetUserHistoryResponse);
 }
 
 message TokenRequest {
   string token = 1;
 }
 
-// Returns the actual Product objects from a product map
 message SimilarProductsResponse {
-  repeated Product products = 1;
-}
-
-message Product {
-  int32 id = 1;
-  string name = 2;
-  string subcategory = 3;
-  float price = 4;
+  repeated int32 productIds = 1;
 }
 
 message ProductsRequest {
   string username = 1;
   repeated int32 productIds = 2;
-}
-
-message GetUserHistoryRequest {
-  string token = 1;
 }
 
 message GetUserHistoryResponse {

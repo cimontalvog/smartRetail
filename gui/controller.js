@@ -92,8 +92,6 @@ exports.handleRegister = (req, res) => {
 exports.showDashboard = (req, res) => {
 	const token = req.session.token;
 
-	
-
 	inventoryClient.GetAllProducts({}, (err, inventoryResponse) => {
 		if (err) {
 			console.error("Inventory gRPC error:", err);
@@ -108,12 +106,16 @@ exports.showDashboard = (req, res) => {
 				return res.status(500).send("Failed to load recommended products");
 			}
 
-			const recommendedProducts = recommendedResponse.products;
+			console.log(recommendedResponse)
+
+			const recommendedProducts = (recommendedResponse.productIds || [])
+				.map(id => availableProducts.find(p => p.id === id))
+				.filter(p => p); // Filters out undefined if any ID wasn't found
 		
 			userClient.GetUserHistoryProducts({ token }, (err, historyResponse) => {
 				if (err) {
 					console.error("User gRPC error:", err);
-					return res.status(401).send("Unauthorized or failed to load dashboard");
+					return res.status(500).send("Failed to load history products");
 				}
 		
 				const historyProducts = historyResponse.products;
