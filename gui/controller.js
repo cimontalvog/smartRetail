@@ -229,7 +229,7 @@ exports.confirmPurchase = (req, res) => {
 
 
         // Call Checkout service ConfirmPurchase RPC
-        checkoutClient.ConfirmPurchase({ username, productQuantityUpdates: productAndQuantities }, (err, response) => {
+        checkoutClient.ConfirmPurchase({ token, productQuantityUpdates: productAndQuantities }, (err, response) => {
             if (err) {
                 console.error("[UI] Checkout gRPC error during ConfirmPurchase:", err.message);
                 return res.status(500).send("Checkout failed");

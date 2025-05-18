@@ -12,7 +12,7 @@ service CheckoutService {
 
 // ConfirmPurchaseRequest contains the details needed to confirm a purchase.
 message ConfirmPurchaseRequest {
-  string username = 1; // The username of the user making the purchase.
+  string token = 1; // The token of the user making the purchase.
   repeated ProductQuantityUpdate productQuantityUpdates = 2; // A list of products and their quantities being purchased/updated.
 }
 

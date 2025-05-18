@@ -42,11 +42,6 @@ const recommendationProto = grpc.loadPackageDefinition(recommendationPackageDefi
 const inventoryClient = new inventoryProto.InventoryService("localhost:50053", grpc.credentials.createInsecure());
 const recommendationClient = new recommendationProto.RecommendationService("localhost:50054", grpc.credentials.createInsecure());
 
-// --- Recommendation Stream Management ---
-
-// Map to store the last received recommendations for each user
-const lastRecommendationsMap = new Map(); // Map<username, Product[]>
-
 console.log("[USER] Opening bidirectional stream to Recommendation service...");
 // Open a bidirectional stream to the Recommendation service
 const recommendationBidirectionalStream = recommendationClient.GetSimilarProducts();
@@ -57,15 +52,13 @@ recommendationBidirectionalStream.on("data", (response) => {
 
     const { username, productIds } = response;
 
-    // Initialize or update the user's last recommendations, keeping only the most recent 3
-    if (!lastRecommendationsMap.has(username)) {
-        lastRecommendationsMap.set(username, []);
-    }
-    const existing = lastRecommendationsMap.get(username);
-    const updated = existing.concat(productIds || []).slice(3); // Concatenate new IDs and keep last 3
-    lastRecommendationsMap.set(username, updated);
+    const user = users.find(u => u.username === username);
 
-    console.log(`[USER] Stored updated recommendations for ${username}:`, updated);
+    // Save last 3 recommendations
+    user.lastRecommendations = user.lastRecommendations.concat(productIds || []).slice(-3);
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+
+    console.log(`[USER] Stored updated recommendations for ${username}:`, user.lastRecommendations);
 });
 
 // Log when the recommendation stream ends
@@ -128,8 +121,10 @@ const userService = {
             });
         }
 
+        const user = users.find(u => u.username === username);
+
         // Get last received recommendations from the map
-        const productIds = lastRecommendationsMap.get(username) || [];
+        const productIds = user.lastRecommendations || [];
         console.log(`[USER] Retrieved ${productIds.length} recommended products for ${username}.`);
 
         // Return recommended product IDs

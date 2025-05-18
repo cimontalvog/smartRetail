@@ -66,7 +66,7 @@ const authService = {
         }
 
         // Add new user to the users array and save to file
-        users.push({ username, password, cart: [], history: [] }); // Initialize empty cart and history for new user
+        users.push({ username, password, history: [], lastRecommendations: [] }); // Initialize empty cart and history for new user
         fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2)); // Persist users data
 
         let message = "User " + username + " has registered successfully"

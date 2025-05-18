@@ -1,6 +1,9 @@
 const grpc = require("@grpc/grpc-js"); // gRPC library
 const protoLoader = require("@grpc/proto-loader"); // For loading .proto files
+const jwt = require('jsonwebtoken'); // Assuming jwt is imported
 const fs = require("fs"); // Node.js File System module
+
+const SECRET_KEY = "tokensupersecret";
 
 // --- Configuration and Protocol Buffer Paths ---
 
@@ -74,75 +77,92 @@ function saveStats(stats) {
 const checkoutService = {
     // Handles purchase confirmation requests
     ConfirmPurchase: (call, callback) => {
-        console.log("[CHECKOUT] Received ConfirmPurchase request.");
-        const { username, productQuantityUpdates } = call.request; // Extract request data
+		console.log("[CHECKOUT] Received ConfirmPurchase request.");
+		const { token, productQuantityUpdates } = call.request; // Extract request data
 
-        // Get all products from Inventory service (needed for pricing details)
-        inventoryClient.GetAllProducts({}, (err, inventoryResponse) => {
-            if (err) {
-                console.error("[CHECKOUT] Inventory fetch error during ConfirmPurchase:", err.details);
-                return callback(null, {
-                    success: false,
-                    message: "Inventory fetch failed: ${err.details}"
-                });
-            }
-            console.log("[CHECKOUT] Inventory products fetched successfully.");
-
-            const products = inventoryResponse.products; // All available products
-
-            // Update quantities in the Inventory service
-            inventoryClient.UpdateQuantities({ updates: productQuantityUpdates }, (err, res) => {
-                if (err) {
-                    console.error("[CHECKOUT] Inventory update failed during ConfirmPurchase:", err.details);
-                    return callback(null, {
-                        success: false,
-                        message: "Inventory update failed: ${err.details}"
-                    });
-                }
-                console.log("[CHECKOUT] Inventory quantities updated successfully.");
-
-                // Aggregate statistics for the current purchase
-                const productIds = [];
-                let totalQuantity = 0;
-                let totalMoney = 0;
-
-                // Loop through updates to calculate totals and gather IDs for recommendations
-                for (const update of productQuantityUpdates) {
-                    if (update.quantity > 0) { // Only consider purchased items (positive quantity)
-                        const product = products.find(p => p.id === update.id);
-                        if (product) {
-                            totalQuantity += update.quantity;
-                            totalMoney += update.quantity * product.price;
-
-                            // Add product IDs multiple times for quantity in history/recommendations
-                            for (let i = 0; i < update.quantity; i++) {
-                                productIds.push(update.id);
-                            }
-                        }
-                    }
-                }
-
-                // Load existing stats, update with current purchase, and save
-                const stats = loadStats();
-                stats.totalProductsPurchased += totalQuantity;
-                stats.totalMoneySpent += totalMoney;
-                saveStats(stats);
-                console.log("[CHECKOUT] Updated global stats for user ${username}.");
+		let username;
+		// --- Token Verification Block ---
+		try {
+			const decoded = jwt.verify(token, SECRET_KEY);
+			username = decoded.username;
+			console.log(`[CHECKOUT] User ${username} is confirming purchase.`);
+		} catch (err) {
+			console.error("[CHECKOUT] Token verification failed for ConfirmPurchase:", err.message);
+			// Return UNAUTHENTICATED error if token is invalid or expired
+			return callback({
+				code: grpc.status.UNAUTHENTICATED,
+				details: "Invalid or expired authentication token."
+			});
+		}
+		// --- End Token Verification Block ---
 
 
-                // Write product IDs to the recommendations stream for user history updates
-                recommendationsStream.write({ username, productIds });
-                console.log("[CHECKOUT] Sent recommendation update for user ${username}.");
+		// Get all products from Inventory service (needed for pricing details)
+		inventoryClient.GetAllProducts({}, (err, inventoryResponse) => {
+			if (err) {
+				console.error("[CHECKOUT] Inventory fetch error during ConfirmPurchase:", err.details);
+				return callback(null, {
+					success: false,
+					message: `Inventory fetch failed: ${err.details}`
+				});
+			}
+			console.log("[CHECKOUT] Inventory products fetched successfully.");
+
+			const products = inventoryResponse.products; // All available products
+
+			// Update quantities in the Inventory service
+			inventoryClient.UpdateQuantities({ updates: productQuantityUpdates }, (err, res) => {
+				if (err) {
+					console.error("[CHECKOUT] Inventory update failed during ConfirmPurchase:", err.details);
+					return callback(null, {
+						success: false,
+						message: `Inventory update failed: ${err.details}`
+					});
+				}
+				console.log("[CHECKOUT] Inventory quantities updated successfully.");
+
+				// Aggregate statistics for the current purchase
+				const productIds = [];
+				let totalQuantity = 0;
+				let totalMoney = 0;
+
+				// Loop through updates to calculate totals and gather IDs for recommendations
+				for (const update of productQuantityUpdates) {
+					if (update.quantity > 0) { // Only consider purchased items (positive quantity)
+						const product = products.find(p => p.id === update.id);
+						if (product) {
+							totalQuantity += update.quantity;
+							totalMoney += update.quantity * product.price;
+
+							// Add product IDs multiple times for quantity in history/recommendations
+							for (let i = 0; i < update.quantity; i++) {
+								productIds.push(update.id);
+							}
+						}
+					}
+				}
+
+				// Load existing stats, update with current purchase, and save
+				const stats = loadStats();
+				stats.totalProductsPurchased += totalQuantity;
+				stats.totalMoneySpent += totalMoney;
+				saveStats(stats);
+				console.log(`[CHECKOUT] Updated global stats for user ${username}.`);
 
 
-                // Respond with success message
-                callback(null, {
-                    success: true,
-                    message: 'Checkout confirmed, inventory updated, and recommendations sent.'
-                });
-            });
-        });
-    },
+				// Write product IDs to the recommendations stream for user history updates
+				recommendationsStream.write({ username, productIds });
+				console.log(`[CHECKOUT] Sent recommendation update for user ${username}.`);
+
+
+				// Respond with success message
+				callback(null, {
+					success: true,
+					message: 'Checkout confirmed, inventory updated, and recommendations sent.'
+				});
+			});
+		});
+	},
 
     // Handles requests to stream real-time checkout statistics to clients
     StreamCheckoutStats: (call) => {
@@ -176,5 +196,5 @@ server.bindAsync("0.0.0.0:50052", grpc.ServerCredentials.createInsecure(), (err,
         console.error("[CHECKOUT] Failed to bind gRPC server:", err);
         return;
     }
-    console.log("[CHECKOUT] gRPC Checkout Server running on port ${port}...");
+    console.log(`[CHECKOUT] gRPC Checkout Server running on port ${port}...`);
 });
