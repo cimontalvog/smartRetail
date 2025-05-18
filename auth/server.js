@@ -37,7 +37,7 @@ const authService = {
 				return callback(null, { success: false, token: "" });
 			}
 
-			const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: "1m" });
+			const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: "1h" });
 			callback(null, { success: true, token });
 		});
     },

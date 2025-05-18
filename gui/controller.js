@@ -7,9 +7,13 @@ const authPackageDefinition = protoLoader.loadSync("proto/auth.proto");
 const recommendationPackageDefinition = protoLoader.loadSync("proto/recommendation.proto");
 const userPackageDefinition = protoLoader.loadSync("proto/user.proto");
 const inventoryPackageDefinition = protoLoader.loadSync("proto/inventory.proto");
+const checkoutPackageDefinition = protoLoader.loadSync("proto/checkout.proto")
 
 const authProto = grpc.loadPackageDefinition(authPackageDefinition).auth;
 const authClient = new authProto.AuthService("localhost:50051", grpc.credentials.createInsecure());
+
+const checkoutProto = grpc.loadPackageDefinition(checkoutPackageDefinition).checkout;
+const checkoutClient = new checkoutProto.CheckoutService("localhost:50052", grpc.credentials.createInsecure());
 
 const inventoryProto = grpc.loadPackageDefinition(inventoryPackageDefinition).inventory;
 const inventoryClient = new inventoryProto.InventoryService("localhost:50053", grpc.credentials.createInsecure());
@@ -106,8 +110,6 @@ exports.showDashboard = (req, res) => {
 				return res.status(500).send("Failed to load recommended products");
 			}
 
-			console.log(recommendedResponse)
-
 			const recommendedProducts = (recommendedResponse.productIds || [])
 				.map(id => availableProducts.find(p => p.id === id))
 				.filter(p => p); // Filters out undefined if any ID wasn't found
@@ -135,4 +137,35 @@ exports.showDashboard = (req, res) => {
 			});
 		});
 	});	
+};
+
+exports.showCheckout = (req, res) => {
+	const token = req.session.token;
+
+	const cart = JSON.parse(req.body.cart || '[]');
+
+	try {
+		const decoded = jwt.verify(token, SECRET_KEY);
+		res.render('checkout', {
+			username: decoded.username,
+			cart
+		});
+	} catch (err) {
+		console.error("Auth error:", err);
+		return res.status(401).send("Invalid or expired token");
+	}
+};
+
+exports.confirmPurchase = (req, res) => {
+	const token = req.session.token;
+
+	const productIds = 
+
+	try {
+		const decoded = jwt.verify(token, SECRET_KEY);
+		
+	} catch (err) {
+		console.error("Auth error:", err);
+		return res.status(401).send("Invalid or expired token");
+	}
 };

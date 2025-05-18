@@ -2,27 +2,44 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Checkout</title>
+	<title><%= username %> - Checkout</title>
 	<link rel="stylesheet" href="/main.css">
 </head>
 <body>
-	<h1>Checkout</h1>
-	<div class="panel">
-		<h2>Review Your Order</h2>
+	<h1><%= username %> - Confirm Purchase</h1>
+	<form action="/logout" method="POST" class="logout-form">
+		<button type="submit">Logout</button>
+	</form>
 
-		<% if (cartItems && cartItems.length > 0) { %>
-			<% let total = 0; %>
-			<% cartItems.forEach(item => { %>
-				<div class="checkout-item">
-					<%= item.name %> - $<%= item.price.toFixed(2) %>
+	<div class="dashboard" style="grid-template-columns: 1fr 2fr 1fr;">
+		<!-- Empty spacer -->
+		<div></div>
+
+		<!-- Centered checkout panel -->
+		<div class="panel">
+			<h2>Review Your Order</h2>
+			<% if (cart.length === 0) { %>
+				<p>Your cart is empty.</p>
+			<% } else { %>
+				<% cart.forEach(item => { %>
+					<div class="checkout-item">
+						<%= item.name %> x<%= item.quantity || 1 %> - $<%= (item.price * (item.quantity || 1)).toFixed(2) %>
+					</div>
+				<% }); %>
+
+				<div class="checkout-total">
+					Total: $<%= cart.reduce((total, item) => total + item.price * (item.quantity || 1), 0).toFixed(2) %>
 				</div>
-				<% total += item.price; %>
-			<% }) %>
-			<div class="checkout-total">Total: $<%= total.toFixed(2) %></div>
-			<button>Place Order</button>
-		<% } else { %>
-			<p>No items in your cart.</p>
-		<% } %>
+
+				<form action="/confirm-purchase" method="POST">
+					<input type="hidden" name="cart" value='<%- JSON.stringify(cart) %>'>
+					<button type="submit">Confirm Purchase</button>
+				</form>
+			<% } %>
+		</div>
+
+		<!-- Empty spacer -->
+		<div></div>
 	</div>
 </body>
 </html>

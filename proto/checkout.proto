@@ -3,34 +3,24 @@ syntax = "proto3";
 package checkout;
 
 service CheckoutService {
-  // Called on each item added to the cart (streaming)
-  rpc UpdateCart (stream UpdateCartRequest) returns (Empty);
-
   // Confirms and processes the current user's cart (unary)
-  rpc ConfirmCart (ConfirmCartRequest) returns (ConfirmCartResponse);
+  rpc ConfirmPurchase (ConfirmPurchaseRequest) returns (ConfirmPurchaseResponse);
 }
 
-message UpdateCartRequest {
+message ConfirmPurchaseRequest {
   string username = 1;
-  repeated Product products = 2;
+  repeated ProductQuantityUpdate productQuantityUpdates = 2;
 }
 
-message ConfirmCartRequest {
-  string username = 1;
+// Individual product quantity update
+message ProductQuantityUpdate {
+  int32 id = 1;
+  int32 quantity = 2; // Can be positive or negative
 }
 
-message ConfirmCartResponse {
+message ConfirmPurchaseResponse {
   bool success = 1;
   string message = 2;
-  repeated Product purchasedProducts = 3;
-}
-
-message Product {
-  int32 id = 1;
-  string name = 2;
-  string subcategory = 3;
-  float price = 4;
-  int32 quantity = 5;
 }
 
 message Empty {}

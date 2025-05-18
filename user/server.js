@@ -95,7 +95,7 @@ const userService = {
 
 		// Return the full list of products (repeated field)
 		callback(null, {
-			productIds: [] // assumed to be array of Product messages
+			productIds // assumed to be array of Product messages
 		});
 	},
     GetUserHistoryProducts: (call, callback) => {

@@ -42,4 +42,8 @@ router.post('/register', controller.handleRegister);
 // Show dashboard
 router.get('/dashboard', controller.showDashboard);
 
+router.post('/checkout', controller.showCheckout);
+
+router.post('/confirmPurchase', controller.confirmCheckout);
+
 module.exports = router;

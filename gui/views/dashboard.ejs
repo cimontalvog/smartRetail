@@ -38,7 +38,11 @@
 			</div>
 			<div id="recommended-products" style="display: none;">
 				<% recommended.forEach(item => { %>
-					<div class="product"><%= item.name %> - $<%= item.price.toFixed(2) %></div>
+					<div class="product">
+						<%= item.name %> - $<%= item.price.toFixed(2) %>
+						<button onclick="modifyCart('<%= item.name %>', 1)">+</button>
+						<button onclick="modifyCart('<%= item.name %>', -1)">–</button>
+					</div>
 				<% }); %>
 			</div>
 		</div>
@@ -54,12 +58,17 @@
 			<div id="cart-total" class="checkout-total">
 				Total: $<%= cart.reduce((total, item) => total + item.price, 0).toFixed(2) %>
 			</div>
+			<form id="checkout-form" action="/checkout" method="POST">
+				<input type="hidden" name="cart" id="cart-input">
+				<button type="submit">Checkout</button>
+			</form>
 		</div>
 	</div>
 
 	<script>
 		const availableProducts = JSON.parse('<%- JSON.stringify(available) %>');
 		let cart = JSON.parse('<%- JSON.stringify(cart) %>');
+		const hiddenInput = document.getElementById('cart-input');
 
 		function toggleView(view) {
 			const availableBtn = document.getElementById('available-btn');
@@ -84,7 +93,7 @@
 					if (existing) {
 						existing.quantity += 1;
 					} else {
-						cart.push({ name: product.name, price: product.price, quantity: 1 });
+						cart.push({ id: product.id, name: product.name, price: product.price, quantity: 1 });
 					}
 				} else {
 					alert("No more stock available for " + product.name);
@@ -120,7 +129,11 @@
 			});
 
 			totalElem.textContent = `Total: $${total.toFixed(2)}`;
+
+			// Update the hidden input with JSON string of cart
+			hiddenInput.value = JSON.stringify(cart);
 		}
 	</script>
 </body>
 </html>
+
