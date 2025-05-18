@@ -1,5 +1,6 @@
 [
 	{
+		"id": 1,
 		"name": "Wireless Earbuds",
 		"description": "Compact wireless earbuds with noise-cancellation and long battery life.",
 		"subcategory": "Electronics",
@@ -7,6 +8,7 @@
 		"availableQuantity": 12
 	},
 	{
+		"id": 2,
 		"name": "Cotton T-Shirt",
 		"description": "Soft cotton t-shirt with a relaxed fit for everyday comfort.",
 		"subcategory": "Clothing",
@@ -14,6 +16,7 @@
 		"availableQuantity": 7
 	},
 	{
+		"id": 3,
 		"name": "Espresso Machine",
 		"description": "Automatic espresso machine with milk frother for home baristas.",
 		"subcategory": "Appliances",
@@ -21,6 +24,7 @@
 		"availableQuantity": 4
 	},
 	{
+		"id": 4,
 		"name": "Gaming Mouse",
 		"description": "Ergonomic mouse with customizable DPI and RGB lighting.",
 		"subcategory": "Electronics",
@@ -28,6 +32,7 @@
 		"availableQuantity": 9
 	},
 	{
+		"id": 5,
 		"name": "Running Shoes",
 		"description": "Lightweight running shoes with breathable mesh and arch support.",
 		"subcategory": "Footwear",
@@ -35,6 +40,7 @@
 		"availableQuantity": 14
 	},
 	{
+		"id": 6,
 		"name": "Bluetooth Speaker",
 		"description": "Portable speaker with 360° sound and waterproof design.",
 		"subcategory": "Electronics",
@@ -42,6 +48,7 @@
 		"availableQuantity": 2
 	},
 	{
+		"id": 7,
 		"name": "Yoga Mat",
 		"description": "Non-slip, eco-friendly yoga mat with extra cushioning.",
 		"subcategory": "Fitness",
@@ -49,6 +56,7 @@
 		"availableQuantity": 19
 	},
 	{
+		"id": 8,
 		"name": "Stainless Steel Water Bottle",
 		"description": "Double-walled insulated bottle to keep drinks cold or hot for hours.",
 		"subcategory": "Home & Kitchen",
@@ -56,6 +64,7 @@
 		"availableQuantity": 0
 	},
 	{
+		"id": 9,
 		"name": "Smart Watch",
 		"description": "Fitness tracking smartwatch with heart-rate monitor and GPS.",
 		"subcategory": "Electronics",
@@ -63,6 +72,7 @@
 		"availableQuantity": 6
 	},
 	{
+		"id": 10,
 		"name": "Leather Wallet",
 		"description": "Slim genuine leather wallet with RFID protection.",
 		"subcategory": "Accessories",
@@ -70,6 +80,7 @@
 		"availableQuantity": 11
 	},
 	{
+		"id": 11,
 		"name": "Ceramic Dinner Set",
 		"description": "12-piece ceramic dinner set in elegant white finish.",
 		"subcategory": "Home & Kitchen",
@@ -77,6 +88,7 @@
 		"availableQuantity": 3
 	},
 	{
+		"id": 12,
 		"name": "Noise-Canceling Headphones",
 		"description": "Over-ear headphones with premium noise-canceling technology.",
 		"subcategory": "Electronics",
@@ -84,6 +96,7 @@
 		"availableQuantity": 5
 	},
 	{
+		"id": 13,
 		"name": "Denim Jacket",
 		"description": "Classic unisex denim jacket with durable stitching.",
 		"subcategory": "Clothing",
@@ -91,6 +104,7 @@
 		"availableQuantity": 13
 	},
 	{
+		"id": 14,
 		"name": "Bamboo Cutting Board Set",
 		"description": "Eco-friendly set of 3 bamboo cutting boards for kitchen use.",
 		"subcategory": "Home & Kitchen",
@@ -98,6 +112,7 @@
 		"availableQuantity": 17
 	},
 	{
+		"id": 15,
 		"name": "Adjustable Dumbbells",
 		"description": "Set of adjustable dumbbells for home workouts, up to 50 lbs.",
 		"subcategory": "Fitness",
@@ -105,6 +120,7 @@
 		"availableQuantity": 1
 	},
 	{
+		"id": 16,
 		"name": "LED Desk Lamp",
 		"description": "Energy-saving desk lamp with adjustable brightness and color modes.",
 		"subcategory": "Electronics",
@@ -112,6 +128,7 @@
 		"availableQuantity": 20
 	},
 	{
+		"id": 17,
 		"name": "Scented Candle Set",
 		"description": "Pack of 4 aromatherapy candles in glass jars.",
 		"subcategory": "Home & Kitchen",
@@ -119,6 +136,7 @@
 		"availableQuantity": 8
 	},
 	{
+		"id": 18,
 		"name": "Slim Fit Chinos",
 		"description": "Modern slim-fit chinos suitable for casual or office wear.",
 		"subcategory": "Clothing",
@@ -126,6 +144,7 @@
 		"availableQuantity": 18
 	},
 	{
+		"id": 19,
 		"name": "Kids Puzzle Set",
 		"description": "Colorful educational puzzle set for kids aged 3–6.",
 		"subcategory": "Toys",
@@ -133,6 +152,7 @@
 		"availableQuantity": 15
 	},
 	{
+		"id": 20,
 		"name": "Digital Air Fryer",
 		"description": "Large-capacity air fryer with digital touch screen and presets.",
 		"subcategory": "Appliances",

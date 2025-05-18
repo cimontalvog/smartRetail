@@ -18,10 +18,7 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'styles')));
 
-
 app.use('/', guiRoutes);
-
-console.log("HEY!");
 
 const PORT = 3000;
 app.listen(PORT, () => {

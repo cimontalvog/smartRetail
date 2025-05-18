@@ -9,14 +9,13 @@
 	<h1>Create an Account</h1>
 	<div class="panel" style="max-width: 400px; margin: 0 auto;">
 		<form method="POST" action="/register">
+            <% if (typeof error !== 'undefined' && error) { %>
+				<div style="color: red; margin-bottom: 15px;"><%= error %></div>
+			<% } %>
+
 			<div style="margin-bottom: 15px;">
 				<label for="username">Username:</label><br>
 				<input type="text" id="username" name="username" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-			</div>
-
-			<div style="margin-bottom: 15px;">
-				<label for="email">Email:</label><br>
-				<input type="email" id="email" name="email" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
 			</div>
 
 			<div style="margin-bottom: 15px;">
@@ -26,7 +25,7 @@
 
 			<div style="margin-bottom: 15px;">
 				<label for="confirm-password">Confirm Password:</label><br>
-				<input type="password" id="confirm-password" name="confirm-password" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+				<input type="password" id="confirmPassword" name="confirmPassword" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
 			</div>
 
 			<button type="submit" style="width: 100%;">Register</button>

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package recommendation;
+
+service RecommendationService {
+  rpc GetSimilarProducts (SimilarProductsRequest) returns (stream Product);
+}
+
+message SimilarProductsRequest {
+  string token = 1;
+  repeated int32 productIds = 2; // Accept multiple product IDs
+}
+
+message Product {
+  int32 id = 1;
+  string name = 2;
+  string subcategory = 3;
+  float price = 4;
+}

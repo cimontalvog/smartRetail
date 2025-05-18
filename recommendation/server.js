@@ -1,24 +1,90 @@
 const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
+const fs = require('fs');
+const jwt = require('jsonwebtoken');
 
 // Load .proto file
-const PROTO_PATH = "./hello.proto";
+const PROTO_PATH = "proto/recommendation.proto";
+const PRODUCTS_FILE = "data/inventory.json";
+
+// Read products from the file
+let products = [];
+if (fs.existsSync(PRODUCTS_FILE)) {
+    products = JSON.parse(fs.readFileSync(PRODUCTS_FILE, "utf8"));
+}
+
+const SECRET_KEY = "tokensupersecret"; // Secret used for the JWT token
 const packageDefinition = protoLoader.loadSync(PROTO_PATH);
 
-const helloProto = grpc.loadPackageDefinition(packageDefinition).hello;
+const recommendationProto = grpc.loadPackageDefinition(packageDefinition).recommendation;
 
-// Implement the HelloService
-const helloService = {
-    SayHello: (call, callback) => {
-        const name = call.request.name || "World";
-        console.log("Response generated!");
-        callback(null, { message: `Hello, ${name}!` });
+// Using a KNN weighted metric for recommendations, that includes subcategory and prices regarding
+// previously purchased products
+const w1 = 0.7;
+const w2 = 0.3;
+
+const recommendationService = {
+	GetSimilarProducts: (call) => {
+        const { token, productIds } = call.request;
+    
+        // Validate JWT (optional)
+        jwt.verify(token, SECRET_KEY);
+    
+        const result = getSimilarProducts(productIds, products);
+        if (result.length === 0) {
+            // stream an error
+            call.destroy(new Error("No valid recommendations found"));
+            return;
+        }
+    
+        for (const product of result) {
+            call.write(product); // send each product individually
+        }
+        call.end(); // signal end of stream
     }
 };
 
+function getSimilarProducts(productIds, allProducts) {
+	const purchased = allProducts.filter(p => productIds.includes(p.id));
+	if (purchased.length === 0) return [];
+
+	const maxPriceDiff = Math.max(
+		...allProducts.flatMap(p1 =>
+			purchased.map(p2 => Math.abs(p1.price - p2.price))
+		)
+	) || 1;
+
+	// Slight randomization per request
+	const w1 = 0.6 + Math.random() * 0.2; // [0.6 - 0.8]
+	const w2 = 1 - w1;                    // keep sum = 1
+
+	const scored = allProducts
+		.filter(p => !productIds.includes(p.id))
+		.map(p => {
+			let totalScore = 0;
+
+			for (const target of purchased) {
+				const subcategory_score = (p.subcategory && target.subcategory && p.subcategory === target.subcategory) ? 1 : 0;
+				const price_diff = Math.abs(p.price - target.price);
+				const normalized_price_diff = 1 - (price_diff / maxPriceDiff);
+				const score = w1 * subcategory_score + w2 * normalized_price_diff;
+				totalScore += score;
+			}
+
+			const avgScore = totalScore / purchased.length;
+			return { ...p, score: avgScore };
+		})
+		.sort((a, b) => b.score - a.score)
+		.slice(0, 5);
+
+	return scored.map(({ id, name, subcategory, price }) => ({
+		id, name, subcategory, price
+	}));
+}
+
 // Start gRPC Server
 const server = new grpc.Server();
-server.addService(helloProto.HelloService.service, helloService);
+server.addService(recommendationProto.RecommendationService.service, recommendationService);
 server.bindAsync("0.0.0.0:50054", grpc.ServerCredentials.createInsecure(), () => {
-    console.log("gRPC Hello Server running on port 50054...");
+    console.log("gRPC Recommendation Server running on port 50054...");
 });

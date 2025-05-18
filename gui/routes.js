@@ -6,13 +6,24 @@ const controller = require('./controller');
 router.get('/', controller.showLogin);
 
 // Show login page
-router.get('/login', controller.showLogin);
+router.get('/login', (req, res) => {
+    const message = req.session.message;
+	delete req.session.message;
+	const error = req.session.error;
+	delete req.session.error;
+    console.log("UNDERFIED: " + message)
+	res.render('login', { message, error });
+});
 
 // Login submission
 router.post('/login', controller.handleLogin);
 
 // Show register page
-router.get('/register', controller.showRegister);
+router.get('/register', (req, res) => {
+	const error = req.session.error;
+	delete req.session.error;
+	res.render('register', { error });
+});
 
 // Register submission
 router.post('/register', controller.handleRegister);

@@ -2,10 +2,14 @@ const path = require('path');
 const bcrypt = require("bcrypt");
 const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
-const packageDefinition = protoLoader.loadSync("proto/auth.proto");
+const authPackageDefinition = protoLoader.loadSync("proto/auth.proto");
+const recommendationPackageDefinition = protoLoader.loadSync("proto/recommendation.proto");
 
-const authProto = grpc.loadPackageDefinition(packageDefinition).auth;
+const authProto = grpc.loadPackageDefinition(authPackageDefinition).auth;
 const authClient = new authProto.AuthService("localhost:50051", grpc.credentials.createInsecure());
+
+const recommendationProto = grpc.loadPackageDefinition(recommendationPackageDefinition).recommendation;
+const recommendationClient = new recommendationProto.RecommendationService("localhost:50054", grpc.credentials.createInsecure());
 
 // Show login page
 exports.showLogin = (req, res) => {
@@ -19,16 +23,16 @@ exports.handleLogin = (req, res) => {
 	authClient.Login({ username, password }, (err, response) => {
 		if (err) {
 			console.error('AuthService error:', err);
-			return res.render('login', { error: 'Auth service unavailable' });
+			req.session.error = 'Auth service unavailable';
+			return res.redirect('/login');
 		}
-
-		console.log(response)
 
 		if (response.success) {
 			req.session.token = response.token;
 			res.redirect('/dashboard');
 		} else {
-			res.render('login', { error: 'Invalid credentials' });
+			req.session.error = 'Invalid credentials';
+			res.redirect('/login');
 		}
 	});
 };
@@ -40,7 +44,7 @@ exports.showRegister = (req, res) => {
 
 // Handle register form (create new user)
 exports.handleRegister = (req, res) => {
-	const { username, email, password, confirmPassword } = req.body;
+	const { username, password, confirmPassword } = req.body;
 
 	// Basic form validation (password match)
 	if (password !== confirmPassword) {
@@ -55,16 +59,19 @@ exports.handleRegister = (req, res) => {
 		}
 
 		// Send registration data to Auth service
-		authClient.Register({ username, email, password: hashedPassword }, (err, response) => {
+		authClient.Register({ username, password: hashedPassword }, (err, response) => {
 			if (err) {
 				console.error('AuthService error:', err);
-				return res.render('register', { error: 'Auth service unavailable' });
+				req.session.error = 'Auth service unavailable';
+				return res.redirect('/register');
 			}
-
 			if (response.success) {
+				console.log("New user " + username + " has been registered successfully")
+				req.session.message = response.message;
 				res.redirect('/login');
 			} else {
-				res.render('register', { error: 'Registration failed' });
+				req.session.error = response.message;
+				res.redirect('/register');
 			}
 		});
 	});
@@ -72,7 +79,5 @@ exports.handleRegister = (req, res) => {
 
 // Show dashboard page
 exports.showDashboard = (req, res) => {
-	console.log("HEY!")
 	res.render('dashboard');
 };
-

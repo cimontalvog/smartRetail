@@ -1,7 +1,6 @@
 const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
 const jwt = require('jsonwebtoken');
-const path = require('path');
 const fs = require('fs');
 const bcrypt = require("bcrypt");
 
@@ -20,17 +19,15 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH);
 
 const authProto = grpc.loadPackageDefinition(packageDefinition).auth;
 
-console.log("AUTH!")
-
 // Implement the AuthService
 const authService = {
     Login: (call, callback) => {
-		console.log(call)
         const { username, password } = call.request;
 
 		const user = users.find(u => u.username === username);
 
 		if (!user) {
+			console.log("User " + user + " doesn't exist")
 			return callback(null, { success: false, token: '' });
 		}
 
@@ -40,7 +37,7 @@ const authService = {
 				return callback(null, { success: false, token: "" });
 			}
 
-			const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: "1h" });
+			const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: "1m" });
 			callback(null, { success: true, token });
 		});
     },
@@ -54,28 +51,31 @@ const authService = {
 			});
 		}
 
-		users.push({ username, password });
+		users.push({ username, password, cart: [], history: [] });
 		fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+
+		let message = "User " + username + " has registered successfully"
+
+		console.log(message);
 
 		callback(null, {
 			success: true,
-			message: 'User registered successfully'
+			message: message
 		});
     }
 };
 
 // Start gRPC Server
 const server = new grpc.Server();
-console.log("AUTH2!")
 
 server.addService(authProto.AuthService.service, authService);
 
-console.log("AUTH3!")
-
-server.bindAsync("0.0.0.0:50051", grpc.ServerCredentials.createInsecure(), (err, port) => {
-	if (err) {
-	  console.error("Failed to bind gRPC server:", err);
-	  return;
-	}
-	console.log(`gRPC Auth Server running on port ${port}...`);
-  });
+server.bindAsync("0.0.0.0:50051", grpc.ServerCredentials.createInsecure(), (err, port) => 
+	{
+		if (err) {
+		console.error("Failed to bind gRPC server:", err);
+		return;
+		}
+		console.log(`gRPC Auth Server running on port ${port}...`);
+  	}
+);

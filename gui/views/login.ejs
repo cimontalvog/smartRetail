@@ -9,6 +9,14 @@
 	<h1>Login</h1>
 	<div class="panel" style="max-width: 400px; margin: 0 auto;">
 		<form method="POST" action="/login">
+			<% if (typeof message !== 'undefined' && message) { %>
+				<div style="color: green; margin-bottom: 15px;"><%= message %></div>
+			<% } %>
+
+			<% if (typeof error !== 'undefined' && error) { %>
+				<div style="color: red; margin-bottom: 15px;"><%= error %></div>
+			<% } %>
+
 			<div style="margin-bottom: 15px;">
 				<label for="username">Username:</label><br>
 				<input type="text" id="username" name="username" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">

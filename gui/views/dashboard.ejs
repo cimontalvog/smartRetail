@@ -7,11 +7,45 @@
 </head>
 <body>
 	<h1>Dashboard</h1>
-	<div class="panel">
-		<h2>Purchase History</h2>
-		<div class="history-item">Order #123 - $29.99</div>
-		<div class="history-item">Order #124 - $14.50</div>
-		<div class="history-item">Order #125 - $48.00</div>
+	<div class="dashboard">
+		<!-- Purchase History Panel -->
+		<div class="panel">
+			<h2>Purchase History</h2>
+			<div class="history-item">Order #123 - $29.99</div>
+			<div class="history-item">Order #124 - $14.50</div>
+			<div class="history-item">Order #125 - $48.00</div>
+		</div>
+
+		<!-- Center Products Panel -->
+		<div class="panel">
+			<h2>Products</h2>
+			<div class="toggle-buttons">
+				<button onclick="toggleView('available')">Available</button>
+				<button onclick="toggleView('recommended')">Recommended</button>
+			</div>
+			<div id="available-products">
+				<div class="product">Apple - $1.20</div>
+				<div class="product">Banana - $0.80</div>
+			</div>
+			<div id="recommended-products" style="display: none;">
+				<div class="product">Grapes - $2.50</div>
+				<div class="product">Mango - $3.00</div>
+			</div>
+		</div>
+
+		<!-- Cart Panel -->
+		<div class="panel">
+			<h2>Cart</h2>
+			<div class="checkout-item">Apple - $1.20</div>
+			<div class="checkout-item">Banana - $0.80</div>
+			<div class="checkout-total">Total: $2.00</div>
+		</div>
 	</div>
+	<script>
+		function toggleView(view) {
+		  document.getElementById('available-products').style.display = view === 'available' ? 'block' : 'none';
+		  document.getElementById('recommended-products').style.display = view === 'recommended' ? 'block' : 'none';
+		}
+	</script>
 </body>
 </html>

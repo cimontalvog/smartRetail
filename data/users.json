@@ -1,9 +1,14 @@
 [
-	{
-		"id": "u001",
-		"username": "admin",
-		"password": "$2a$12$ZNwjJepeYlJB4Mauj/6FFup1.Mh3id5AcUt0TtdSr1sSjWAGFiQZ6",
-		"role": "admin",
-		"history": []
-	}
+  {
+    "username": "admin",
+    "password": "$2a$12$ZNwjJepeYlJB4Mauj/6FFup1.Mh3id5AcUt0TtdSr1sSjWAGFiQZ6",
+    "cart": [],
+    "history": []
+  },
+  {
+    "username": "admin43",
+    "password": "$2b$10$8fLZwer7e/suEqipHsx4kuadRoFyZDCz4nMnheAK/Tj01cb.8gfha",
+    "cart": [],
+    "history": []
+  }
 ]
