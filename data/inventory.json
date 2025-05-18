@@ -1,0 +1,142 @@
+[
+	{
+		"name": "Wireless Earbuds",
+		"description": "Compact wireless earbuds with noise-cancellation and long battery life.",
+		"subcategory": "Electronics",
+		"price": 59.99,
+		"availableQuantity": 12
+	},
+	{
+		"name": "Cotton T-Shirt",
+		"description": "Soft cotton t-shirt with a relaxed fit for everyday comfort.",
+		"subcategory": "Clothing",
+		"price": 14.99,
+		"availableQuantity": 7
+	},
+	{
+		"name": "Espresso Machine",
+		"description": "Automatic espresso machine with milk frother for home baristas.",
+		"subcategory": "Appliances",
+		"price": 189.99,
+		"availableQuantity": 4
+	},
+	{
+		"name": "Gaming Mouse",
+		"description": "Ergonomic mouse with customizable DPI and RGB lighting.",
+		"subcategory": "Electronics",
+		"price": 29.95,
+		"availableQuantity": 9
+	},
+	{
+		"name": "Running Shoes",
+		"description": "Lightweight running shoes with breathable mesh and arch support.",
+		"subcategory": "Footwear",
+		"price": 74.99,
+		"availableQuantity": 14
+	},
+	{
+		"name": "Bluetooth Speaker",
+		"description": "Portable speaker with 360° sound and waterproof design.",
+		"subcategory": "Electronics",
+		"price": 49.99,
+		"availableQuantity": 2
+	},
+	{
+		"name": "Yoga Mat",
+		"description": "Non-slip, eco-friendly yoga mat with extra cushioning.",
+		"subcategory": "Fitness",
+		"price": 24.99,
+		"availableQuantity": 19
+	},
+	{
+		"name": "Stainless Steel Water Bottle",
+		"description": "Double-walled insulated bottle to keep drinks cold or hot for hours.",
+		"subcategory": "Home & Kitchen",
+		"price": 17.99,
+		"availableQuantity": 0
+	},
+	{
+		"name": "Smart Watch",
+		"description": "Fitness tracking smartwatch with heart-rate monitor and GPS.",
+		"subcategory": "Electronics",
+		"price": 129.99,
+		"availableQuantity": 6
+	},
+	{
+		"name": "Leather Wallet",
+		"description": "Slim genuine leather wallet with RFID protection.",
+		"subcategory": "Accessories",
+		"price": 39.99,
+		"availableQuantity": 11
+	},
+	{
+		"name": "Ceramic Dinner Set",
+		"description": "12-piece ceramic dinner set in elegant white finish.",
+		"subcategory": "Home & Kitchen",
+		"price": 59.95,
+		"availableQuantity": 3
+	},
+	{
+		"name": "Noise-Canceling Headphones",
+		"description": "Over-ear headphones with premium noise-canceling technology.",
+		"subcategory": "Electronics",
+		"price": 89.99,
+		"availableQuantity": 5
+	},
+	{
+		"name": "Denim Jacket",
+		"description": "Classic unisex denim jacket with durable stitching.",
+		"subcategory": "Clothing",
+		"price": 49.99,
+		"availableQuantity": 13
+	},
+	{
+		"name": "Bamboo Cutting Board Set",
+		"description": "Eco-friendly set of 3 bamboo cutting boards for kitchen use.",
+		"subcategory": "Home & Kitchen",
+		"price": 22.99,
+		"availableQuantity": 17
+	},
+	{
+		"name": "Adjustable Dumbbells",
+		"description": "Set of adjustable dumbbells for home workouts, up to 50 lbs.",
+		"subcategory": "Fitness",
+		"price": 149.99,
+		"availableQuantity": 1
+	},
+	{
+		"name": "LED Desk Lamp",
+		"description": "Energy-saving desk lamp with adjustable brightness and color modes.",
+		"subcategory": "Electronics",
+		"price": 27.5,
+		"availableQuantity": 20
+	},
+	{
+		"name": "Scented Candle Set",
+		"description": "Pack of 4 aromatherapy candles in glass jars.",
+		"subcategory": "Home & Kitchen",
+		"price": 19.99,
+		"availableQuantity": 8
+	},
+	{
+		"name": "Slim Fit Chinos",
+		"description": "Modern slim-fit chinos suitable for casual or office wear.",
+		"subcategory": "Clothing",
+		"price": 34.99,
+		"availableQuantity": 18
+	},
+	{
+		"name": "Kids Puzzle Set",
+		"description": "Colorful educational puzzle set for kids aged 3–6.",
+		"subcategory": "Toys",
+		"price": 12.99,
+		"availableQuantity": 15
+	},
+	{
+		"name": "Digital Air Fryer",
+		"description": "Large-capacity air fryer with digital touch screen and presets.",
+		"subcategory": "Appliances",
+		"price": 99.99,
+		"availableQuantity": 10
+	}
+]

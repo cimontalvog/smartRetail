@@ -1,0 +1,74 @@
+/* ====== Global Reset and Base Styles ====== */
+* {
+	box-sizing: border-box;
+	font-family: Arial, sans-serif;
+	margin: 0;
+	padding: 0;
+}
+
+/* ====== Body Styling ====== */
+body {
+	background-color: #f5f7fa; /* Light background for a clean layout */
+	padding: 20px;             /* General padding around the content */
+}
+
+/* ====== Heading Styles ====== */
+h1 {
+	text-align: center;
+	margin-bottom: 20px;
+	color: #333; /* Dark gray for contrast */
+}
+
+/* ====== Layout Container ====== */
+.dashboard {
+	display: grid;                           /* Grid layout for columns */
+	grid-template-columns: 1fr 2fr 1fr;      /* 3-column layout: left, center, right */
+	gap: 20px;                               /* Space between columns */
+}
+
+/* ====== Panel Styling (Reusable Container) ====== */
+.panel {
+	background-color: #fff;                 /* White background for contrast */
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+	overflow-y: auto;
+	height: 80vh;                            /* Fixed vertical space */
+}
+
+/* ====== Panel Headings ====== */
+.panel h2 {
+	margin-bottom: 15px;
+	color: #555;                             /* Softer text color */
+}
+
+/* ====== Reusable Item Cards ====== */
+.product, .history-item, .checkout-item {
+	margin-bottom: 10px;
+	padding: 10px;
+	border: 1px solid #ddd;                 /* Light border */
+	border-radius: 6px;
+	background-color: #fafafa;              /* Slightly off-white */
+}
+
+/* ====== Checkout Total Styling ====== */
+.checkout-total {
+	font-weight: bold;
+	margin-top: 20px;
+	font-size: 1.2em;                       /* Slightly larger font */
+}
+
+/* ====== Button Styling ====== */
+button {
+	padding: 8px 12px;
+	margin-top: 10px;
+	border: none;
+	background-color: #007bff;              /* Bootstrap-like blue */
+	color: #fff;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+button:hover {
+	background-color: #0056b3;              /* Darker blue on hover */
+}

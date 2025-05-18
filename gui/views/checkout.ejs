@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Checkout</title>
+	<link rel="stylesheet" href="/main.css">
+</head>
+<body>
+	<h1>Checkout</h1>
+	<div class="panel">
+		<h2>Review Your Order</h2>
+
+		<% if (cartItems && cartItems.length > 0) { %>
+			<% let total = 0; %>
+			<% cartItems.forEach(item => { %>
+				<div class="checkout-item">
+					<%= item.name %> - $<%= item.price.toFixed(2) %>
+				</div>
+				<% total += item.price; %>
+			<% }) %>
+			<div class="checkout-total">Total: $<%= total.toFixed(2) %></div>
+			<button>Place Order</button>
+		<% } else { %>
+			<p>No items in your cart.</p>
+		<% } %>
+	</div>
+</body>
+</html>

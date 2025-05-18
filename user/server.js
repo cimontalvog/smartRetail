@@ -19,6 +19,6 @@ const helloService = {
 // Start gRPC Server
 const server = new grpc.Server();
 server.addService(helloProto.HelloService.service, helloService);
-server.bindAsync("0.0.0.0:50051", grpc.ServerCredentials.createInsecure(), () => {
-    console.log("gRPC Hello Server running on port 50051...");
+server.bindAsync("0.0.0.0:50055", grpc.ServerCredentials.createInsecure(), () => {
+    console.log("gRPC Hello Server running on port 50055...");
 });
